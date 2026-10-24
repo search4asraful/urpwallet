@@ -159,3 +159,53 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }
+
+export async function DELETE(req: Request) {
+  const db = getDb();
+  try {
+    const body = await req.json();
+    const ids: string[] = Array.isArray(body.ids) ? body.ids : (body.id ? [body.id] : []);
+
+    if (ids.length === 0) {
+      return NextResponse.json({ error: 'No transaction IDs provided for deletion' }, { status: 400 });
+    }
+
+    const now = new Date().toISOString();
+    let deletedCount = 0;
+
+    const executeBatchDelete = db.transaction(() => {
+      const selectTx = db.prepare('SELECT * FROM transactions WHERE id = ?');
+      const deleteTx = db.prepare('DELETE FROM transactions WHERE id = ?');
+      const updateAcc = db.prepare('UPDATE accounts SET balance = balance + ?, updated_at = ? WHERE id = ?');
+      const deductAcc = db.prepare('UPDATE accounts SET balance = balance - ?, updated_at = ? WHERE id = ?');
+
+      for (const id of ids) {
+        const oldTx = selectTx.get(id) as Transaction | undefined;
+        if (oldTx) {
+          // Revert balance effects
+          if (oldTx.type === 'expense') {
+            updateAcc.run(oldTx.amount, now, oldTx.account_id);
+          } else if (oldTx.type === 'income') {
+            deductAcc.run(oldTx.amount, now, oldTx.account_id);
+          } else if (oldTx.type === 'transfer' && oldTx.to_account_id) {
+            updateAcc.run(oldTx.amount, now, oldTx.account_id);
+            deductAcc.run(oldTx.amount, now, oldTx.to_account_id);
+          }
+
+          deleteTx.run(id);
+          deletedCount++;
+        }
+      }
+    });
+
+    executeBatchDelete();
+
+    return NextResponse.json({
+      success: true,
+      deletedCount,
+      ids,
+    });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+  }
+}
