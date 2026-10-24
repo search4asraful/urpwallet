@@ -5,11 +5,11 @@ import {
   LayoutDashboard, Receipt, PieChart, MoreHorizontal, Plus,
   CreditCard, Calendar, Users, BarChart3, Settings, Eye, EyeOff,
   ArrowDownRight, ArrowUpRight, ArrowLeftRight, Wallet as WalletIcon,
-  ChevronRight, Sun, Moon, Monitor, Sparkles, CircleDot, Check
+  ChevronRight, Sun, Moon, Monitor, Sparkles, CircleDot, Check, Cloud
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { ThemeMode } from '@/types';
-import { Badge, Button } from '@/components/ui';
+import { Button } from '@/components/ui';
 
 interface NavigationProps {
   activeTab: string;
@@ -17,6 +17,8 @@ interface NavigationProps {
   privacyMode: boolean;
   onTogglePrivacy: () => void;
   onOpenAddModal: (type?: 'expense' | 'income' | 'transfer') => void;
+  onOpenGDrive?: () => void;
+  isGDriveConnected?: boolean;
   children?: React.ReactNode;
 }
 
@@ -26,6 +28,8 @@ export const Navigation: React.FC<NavigationProps> = ({
   privacyMode,
   onTogglePrivacy,
   onOpenAddModal,
+  onOpenGDrive,
+  isGDriveConnected = false,
   children,
 }) => {
   const [showFabMenu, setShowFabMenu] = useState(false);
@@ -163,40 +167,49 @@ export const Navigation: React.FC<NavigationProps> = ({
 
         {/* Sidebar Footer: Theme bar & Local SQLite */}
         <div className="p-3 border-t border-theme space-y-2 shrink-0 bg-theme-sidebar">
-          {/* Quick Theme Selector Bar in Sidebar */}
-          <div className="p-1.5 rounded-xl bg-theme-subtle border border-theme flex items-center justify-between">
-            {themeOptions.map((opt) => {
-              const OptIcon = opt.icon;
-              const isSelected = themeMode === opt.mode;
-              return (
-                <button
-                  key={opt.mode}
-                  onClick={() => setTheme(opt.mode)}
-                  title={`${opt.label}: ${opt.desc}`}
-                  className={`relative p-1.5 rounded-lg text-xs transition-all ${
-                    isSelected
-                      ? 'bg-emerald-500 text-zinc-950 font-bold shadow-xs'
-                      : 'text-theme-muted hover:text-theme-title hover:bg-theme-subtle'
-                  }`}
-                >
-                  <OptIcon className="w-3.5 h-3.5" />
-                </button>
-              );
-            })}
-          </div>
+          {/* Cloud & Backup */}
+          {onOpenGDrive && (
+            <div>
+              <button
+                onClick={onOpenGDrive}
+                title={isGDriveConnected ? 'Google Drive Synced (Click to manage)' : 'Connect Google Drive for cloud backup'}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all group ${
+                  isGDriveConnected
+                    ? 'border border-emerald-500/25 bg-emerald-500/5 text-theme-main hover:bg-emerald-500/10 shadow-xs'
+                    : 'border border-theme bg-theme-subtle/50 text-theme-muted hover:text-theme-title hover:bg-theme-subtle'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${
+                    isGDriveConnected ? 'bg-emerald-500/20 text-emerald-500' : 'bg-theme-base text-theme-muted'
+                  }`}>
+                    <Cloud className="w-3.5 h-3.5" />
+                  </div>
+                  <span>{isGDriveConnected ? 'Drive Synced' : 'Connect Drive'}</span>
+                </div>
+                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${
+                  isGDriveConnected
+                    ? 'bg-emerald-500/20 text-emerald-500 font-bold'
+                    : 'bg-theme-base text-theme-muted'
+                }`}>
+                  {isGDriveConnected ? 'Active' : 'Offline'}
+                </span>
+              </button>
+            </div>
+          )}
 
           {/* SQLite Status Card */}
           <div className="p-2.5 rounded-xl bg-theme-subtle border border-theme text-[11px] text-theme-muted">
             <div className="flex items-center justify-between font-semibold mb-0.5 text-theme-main">
               <span>Local SQLite</span>
             </div>
-            <p className="text-[10px] text-theme-faint leading-tight">Instant local persistence with zero network lag.</p>
+            <p className="text-[10px] text-theme-faint leading-tight">Instant local persistence, zero network lag.</p>
           </div>
           
           {/* Contributor Info */}
           <div className="text-center text-[10px] text-theme-faint font-medium">
             <span>Open Sourced</span>
-            <span>&nbsp; by </span>
+            <span> by </span>
             <a href="https://github.com/search4asraful" target="_blank" rel="noopener noreferrer" className="text-theme-muted hover:text-theme-title">Asraful Islam</a>
           </div>
         </div>
@@ -216,7 +229,6 @@ export const Navigation: React.FC<NavigationProps> = ({
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm font-bold text-theme-title tracking-tight">urpwallet</span>
-                  <Badge variant="emerald" size="sm">Open Source</Badge>
                 </div>
               </div>
 
@@ -458,6 +470,34 @@ export const Navigation: React.FC<NavigationProps> = ({
                 </button>
               );
             })}
+
+            {onOpenGDrive && (
+              <div className="pt-2 border-t border-theme">
+                <button
+                  onClick={() => {
+                    setShowMoreMobileMenu(false);
+                    onOpenGDrive();
+                  }}
+                  className={`w-full flex items-center justify-between p-2.5 rounded-lg text-xs font-semibold transition-colors ${
+                    isGDriveConnected
+                      ? 'bg-emerald-500/10 border border-emerald-500/20 text-theme-main'
+                      : 'bg-theme-subtle/50 text-theme-muted hover:text-theme-title'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Cloud className={`w-4 h-4 ${isGDriveConnected ? 'text-emerald-500' : 'text-theme-muted'}`} />
+                    <span>{isGDriveConnected ? 'Drive Synced' : 'Connect Drive'}</span>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+                    isGDriveConnected
+                      ? 'bg-emerald-500/20 text-emerald-500 font-bold'
+                      : 'bg-theme-base text-theme-muted'
+                  }`}>
+                    {isGDriveConnected ? 'Active' : 'Offline'}
+                  </span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

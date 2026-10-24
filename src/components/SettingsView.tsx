@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import {
   Download, Upload, RefreshCw, Eye, EyeOff, Plus, Trash2, Check,
   Smartphone, Database, Shield, Palette, Sun, Moon, Monitor,
-  Sparkles, CircleDot
+  Sparkles, CircleDot, Cloud, CloudUpload
 } from 'lucide-react';
 import { Category, ThemeMode, Transaction } from '@/types';
 import { CategoryIcon } from './CategoryIcon';
@@ -22,6 +22,7 @@ interface SettingsViewProps {
   onAddCategory: (cat: Partial<Category>) => void;
   onDeleteCategory: (id: string) => void;
   onOpenImport?: () => void;
+  onOpenGDrive?: () => void;
 }
 
 const AVAILABLE_CURRENCIES = [
@@ -51,6 +52,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onAddCategory,
   onDeleteCategory,
   onOpenImport,
+  onOpenGDrive,
 }) => {
   const [showAddCat, setShowAddCat] = useState(false);
   const [catName, setCatName] = useState('');
@@ -443,6 +445,36 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </Button>
           )}
         </div>
+
+        {/* Google Drive Integration */}
+        {onOpenGDrive && (
+          <div className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 hover:border-emerald-500/35 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500 shrink-0">
+                <Cloud className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <div className="text-xs font-bold text-theme-title">Google Drive Cloud Backup & Sync</div>
+                  <Badge variant="success" size="sm">Cloud Sync</Badge>
+                </div>
+                <p className="text-[11px] text-theme-muted mt-0.5">
+                  Automate scheduled off-site backups, remote cloud snapshots, and multi-device restore.
+                </p>
+              </div>
+            </div>
+
+            <Button
+              size="xs"
+              variant="primary"
+              onClick={onOpenGDrive}
+              leftIcon={<CloudUpload className="w-3.5 h-3.5" />}
+              className="shrink-0 self-start sm:self-auto"
+            >
+              Manage Google Drive
+            </Button>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div

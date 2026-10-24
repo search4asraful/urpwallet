@@ -1,6 +1,6 @@
 {
   "name": "urpwallet",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "urpwallet (short form of Your Personal Wallet) — An open-source personal wallet for everyone",
   "private": true,
   "scripts": {

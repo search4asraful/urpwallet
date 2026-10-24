@@ -27,6 +27,7 @@
 - **⚡ Zero Cloud Dependencies**: No third-party accounts, no subscriptions, and no database servers to provision. Clone, install, and run.
 - **💼 Multi-Account & Multi-Currency**: Manage checking accounts, cash wallets, credit cards, savings goals, loans, and investments with independent currencies.
 - **🔄 Complete Portability**: Bi-directional data import & export supporting full JSON backups and CSV bank statements with safe merge or full restore modes.
+- **☁️ Google Drive Cloud Backup & Sync**: Connect your personal Google Drive for automated scheduled backups (hourly, 6h, daily, weekly), cloud restore, and retention pruning.
 - **🎨 8 Aesthetic Themes**: Native system theme detection, light, dark, OLED pitch black, Tokyo Night, Forest, Sunset, and Nord.
 - **👁️ Privacy Shield**: One-click balance masking (`••••••`) for safe usage in public spaces or coffee shops.
 - **📱 PWA Ready**: Installable on iOS, Android, macOS, and Windows with a native web app experience.
@@ -247,6 +248,14 @@ docker compose up -d
 - **Custom Categories**: Create, color-code, and assign custom icons to categories.
 - **Base Currency**: Set default currency across the application.
 
+### 10. ☁️ Google Drive Cloud Backup & Scheduled Sync
+- **Zero-Cloud-Lockin**: Connect your personal Google Drive account via OAuth 2.0 (`drive.file` scope only).
+- **Automated Scheduled Backups**: Choose your sync cadence — Hourly, Every 6 Hours, Daily, or Weekly.
+- **Retention & Auto-Pruning**: Keeps the last 5, 10, 20, or 30 backups in Drive and automatically prunes older ones to save space.
+- **Remote Backups Explorer**: Browse, download, delete, or restore historical snapshots directly within the app.
+- **Atomic Cloud Restore**: Restore any Google Drive backup safely with Merge or Full Replace strategies.
+- **Headless Server & Cron Support**: Trigger scheduled syncs programmatically via `POST /api/gdrive/sync` from external schedulers or server crontabs.
+
 ---
 
 ## 🗄️ Data Storage & Persistence
@@ -287,6 +296,16 @@ All backend API routes return JSON and accept standard JSON payloads or `multipa
 | `/api/import` | `POST` | Ingests JSON backup or CSV bank statement with `merge` or `replace` mode. |
 | `/api/settings` | `GET`, `POST` | Gets or updates base currency and privacy mode. |
 | `/api/seed` | `POST` | Resets and repopulates the database with realistic sample demo data. |
+| `/api/gdrive/status` | `GET` | Returns Google Drive connection state, schedule, and account email. |
+| `/api/gdrive/auth-url` | `GET` | Generates OAuth 2.0 authorization URL for Google Drive. |
+| `/api/gdrive/callback` | `GET` | Handles OAuth 2.0 redirect, token exchange, and persistence. |
+| `/api/gdrive/config` | `POST` | Updates client ID, secret, backup cadence, and retention limits. |
+| `/api/gdrive/disconnect` | `POST` | Disconnects Google Drive and revokes stored tokens. |
+| `/api/gdrive/backup` | `POST` | Triggers an immediate snapshot upload to Google Drive. |
+| `/api/gdrive/backups` | `GET` | Lists all backup snapshots available in Google Drive. |
+| `/api/gdrive/backups/[id]` | `DELETE` | Deletes a specific backup snapshot from Google Drive. |
+| `/api/gdrive/restore` | `POST` | Downloads and restores a backup from Google Drive (Merge or Replace). |
+| `/api/gdrive/sync` | `POST` | Checks schedule eligibility and syncs backup if due (or forced). |
 
 ---
 

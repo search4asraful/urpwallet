@@ -23,6 +23,7 @@ import { AddPlannedModal } from '@/components/AddPlannedModal';
 import { AddDebtModal } from '@/components/AddDebtModal';
 import { RecordDebtPaymentModal } from '@/components/RecordDebtPaymentModal';
 import { ImportModal } from '@/components/ImportModal';
+import { GoogleDriveModal } from '@/components/GoogleDriveModal';
 
 export default function WalletApp() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -61,6 +62,8 @@ export default function WalletApp() {
   const [payingDebt, setPayingDebt] = useState<Debt | null>(null);
 
   const [importOpen, setImportOpen] = useState(false);
+  const [gdriveOpen, setGdriveOpen] = useState(false);
+  const [isGDriveConnected, setIsGDriveConnected] = useState(false);
 
   // Fetch all data
   const refreshData = useCallback(async () => {
@@ -101,6 +104,7 @@ export default function WalletApp() {
       if (sets?.privacy_mode) {
         setPrivacyMode(sets.privacy_mode === 'true');
       }
+      setIsGDriveConnected(Boolean(sets?.gdrive_refresh_token));
     } catch (err) {
       console.error('Failed to load urpwallet data:', err);
     } finally {
@@ -111,6 +115,41 @@ export default function WalletApp() {
   useEffect(() => {
     refreshData();
   }, [refreshData]);
+
+  // Handle Google Drive OAuth callback & background scheduled backup sync
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has('gdrive')) {
+        setGdriveOpen(true);
+        url.searchParams.delete('gdrive');
+        window.history.replaceState({}, '', url.toString());
+      } else if (url.searchParams.has('gdrive_error')) {
+        setGdriveOpen(true);
+        url.searchParams.delete('gdrive_error');
+        window.history.replaceState({}, '', url.toString());
+      }
+    }
+
+    const checkAutoSync = async () => {
+      try {
+        await fetch('/api/gdrive/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+      } catch {
+        // Silent failure in background runner
+      }
+    };
+
+    const initialTimer = setTimeout(checkAutoSync, 4000);
+    const interval = setInterval(checkAutoSync, 5 * 60 * 1000);
+
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(interval);
+    };
+  }, []);
 
   // Actions
   const handleTogglePrivacy = async () => {
@@ -136,6 +175,21 @@ export default function WalletApp() {
   const handleDeleteTransaction = async (id: string) => {
     await fetch(`/api/transactions/${id}`, { method: 'DELETE' });
     refreshData();
+  };
+
+  const handleBulkDeleteTransactions = async (ids: string[]) => {
+    try {
+      const res = await fetch('/api/transactions', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+      });
+      if (res.ok) {
+        await refreshData();
+      }
+    } catch (err) {
+      console.error('Failed to bulk delete transactions:', err);
+    }
   };
 
   const handleDeleteAccount = async (id: string) => {
@@ -218,6 +272,8 @@ export default function WalletApp() {
         privacyMode={privacyMode}
         onTogglePrivacy={handleTogglePrivacy}
         onOpenAddModal={openAddTx}
+        onOpenGDrive={() => setGdriveOpen(true)}
+        isGDriveConnected={isGDriveConnected}
       >
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
           <div className="max-w-6xl mx-auto w-full">
@@ -243,6 +299,7 @@ export default function WalletApp() {
                 onOpenImport={() => setImportOpen(true)}
                 onSelectTransaction={(tx) => setSelectedTx(tx)}
                 onDeleteTransaction={handleDeleteTransaction}
+                onBulkDeleteTransactions={handleBulkDeleteTransactions}
               />
             )}
 
@@ -337,6 +394,7 @@ export default function WalletApp() {
                 onAddCategory={handleAddCategory}
                 onDeleteCategory={handleDeleteCategory}
                 onOpenImport={() => setImportOpen(true)}
+                onOpenGDrive={() => setGdriveOpen(true)}
               />
             )}
           </div>
@@ -441,6 +499,12 @@ export default function WalletApp() {
         onClose={() => setImportOpen(false)}
         onSuccess={refreshData}
         accounts={accounts}
+      />
+
+      <GoogleDriveModal
+        isOpen={gdriveOpen}
+        onClose={() => setGdriveOpen(false)}
+        onDataRestored={refreshData}
       />
     </div>
   );
