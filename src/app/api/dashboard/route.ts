@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
+import { requireAuth } from '@/lib/auth';
 import { DashboardData, Account, Transaction, Budget, PlannedPayment, CategoryBreakdown, CashFlowTrendItem } from '@/types';
 
 
 export async function GET() {
   try {
+    const auth = await requireAuth();
+    if (auth.errorResponse) return auth.errorResponse;
+
     const db = getDb();
     const today = new Date().toISOString().split('T')[0];
     const [year, month] = today.split('-');

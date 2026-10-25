@@ -4,11 +4,15 @@ import React, { useState } from 'react';
 import {
   Download, Upload, RefreshCw, Eye, EyeOff, Plus, Trash2, Check,
   Smartphone, Database, Shield, Palette, Sun, Moon, Monitor,
-  Sparkles, CircleDot, Cloud, CloudUpload
+  Sparkles, CircleDot, Cloud, CloudUpload, KeyRound, ShieldCheck,
+  ShieldAlert, Lock
 } from 'lucide-react';
 import { Category, ThemeMode, Transaction } from '@/types';
 import { CategoryIcon } from './CategoryIcon';
 import { useTheme } from '@/context/ThemeContext';
+import { useAuth } from '@/context/AuthContext';
+import { ChangePasswordModal } from './auth/ChangePasswordModal';
+import { UserManagementSection } from './auth/UserManagementSection';
 import { Card, Button, Input, Select, Badge } from '@/components/ui';
 
 interface SettingsViewProps {
@@ -60,8 +64,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [catColor, setCatColor] = useState('#10B981');
   const [catIcon] = useState('Tag');
   const [seedLoading, setSeedLoading] = useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
 
   const { themeMode, resolvedTheme, systemTheme, setTheme } = useTheme();
+  const { user, isAdmin } = useAuth();
 
   const txCountMap = React.useMemo(() => {
     const map: Record<string, number> = {};
@@ -159,11 +165,59 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   return (
     <div className="space-y-6 pb-20 md:pb-8 max-w-6xl mx-auto w-full animate-in fade-in duration-200">
       <div>
-        <h1 className="text-xl font-bold text-theme-title tracking-tight">Preferences & Appearance</h1>
-        <p className="text-xs text-theme-muted">Configure multi-theme visuals, system detection, currency, and data storage</p>
+        <h1 className="text-xl font-bold text-theme-title tracking-tight">Settings & Preferences</h1>
+        <p className="text-xs text-theme-muted mt-0.5">
+          Configure security, visual themes, currency, categories, and data portability
+        </p>
       </div>
 
-      {/* 1. APPEARANCE & THEME PICKER */}
+      {/* 1. ACCOUNT & ACCESS CONTROL (Unified) */}
+      {user && (
+        <Card className="p-5 md:p-6 space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 font-bold text-base shadow-inner">
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-theme-title">{user.name}</span>
+                  <Badge
+                    variant={isAdmin ? 'purple' : 'neutral'}
+                    size="xs"
+                  >
+                    {isAdmin ? 'Administrator' : 'Member'}
+                  </Badge>
+                </div>
+                <div className="text-xs text-theme-muted flex items-center gap-2 mt-0.5">
+                  <span className="font-mono text-[11px]">@{user.username}</span>
+                  <span>•</span>
+                  <span>{user.email}</span>
+                </div>
+              </div>
+            </div>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setChangePasswordOpen(true)}
+              leftIcon={<KeyRound className="w-3.5 h-3.5 text-theme-muted" />}
+              className="self-start sm:self-auto"
+            >
+              Change Password
+            </Button>
+          </div>
+
+          {/* User Management for Admins */}
+          {isAdmin && (
+            <div className="pt-5 border-t border-theme">
+              <UserManagementSection currentUserId={user.id} />
+            </div>
+          )}
+        </Card>
+      )}
+
+      {/* 2. THEME & VISUAL APPEARANCE */}
       <Card className="p-5 md:p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -172,11 +226,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               Theme & Visual Appearance
             </h2>
             <p className="text-[11px] text-theme-faint mt-0.5">
-              Auto-detect your system theme or choose a tailored visual experience
+              Select your preferred visual style or adapt automatically to system settings
             </p>
           </div>
           <Badge variant="emerald" size="xs">
-            Current: {themeMode} ({resolvedTheme})
+            {themeMode}
           </Badge>
         </div>
 
@@ -190,9 +244,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 key={opt.mode}
                 type="button"
                 onClick={() => setTheme(opt.mode)}
-                className={`relative flex flex-col justify-between p-3.5 rounded-xl border text-left transition-all group ${
+                className={`relative flex flex-col justify-between p-3.5 rounded-xl border text-left transition-all cursor-pointer group ${
                   isSelected
-                    ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-theme-subtle shadow-sm'
+                    ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-theme-subtle shadow-xs'
                     : 'border-theme bg-theme-card hover:bg-theme-subtle hover:border-theme-strong'
                 }`}
               >
@@ -213,7 +267,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
                     {isSelected ? (
                       <div className="w-5 h-5 rounded-full bg-emerald-500 text-zinc-950 flex items-center justify-center shadow-xs">
-                        <Check className="w-3 h-3 stroke-[3]" />
+                        <Check className="w-3 h-3 stroke-3" />
                       </div>
                     ) : opt.badge ? (
                       <Badge variant="neutral" size="xs">
@@ -227,24 +281,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   </p>
                 </div>
 
-                {/* Live Color Swatch Strip */}
-                <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-theme-card border border-theme">
+                {/* Miniature surface color preview */}
+                <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-theme-subtle border border-theme">
                   <div
-                    className="w-4 h-4 rounded border border-white/20 shadow-xs"
+                    className="w-3.5 h-3.5 rounded-sm border border-white/20 shadow-xs"
                     style={{ backgroundColor: opt.previewBg }}
-                    title="Background"
+                    title="App background"
                   />
                   <div
-                    className="w-4 h-4 rounded border border-white/20 shadow-xs"
+                    className="w-3.5 h-3.5 rounded-sm border border-white/20 shadow-xs"
                     style={{ backgroundColor: opt.previewCard }}
-                    title="Card Surface"
+                    title="Card surface"
                   />
                   <div
-                    className="w-4 h-4 rounded border border-white/20 shadow-xs"
+                    className="w-3.5 h-3.5 rounded-sm border border-white/20 shadow-xs"
                     style={{ backgroundColor: opt.previewAccent }}
-                    title="Accent Color"
+                    title="Accent highlight"
                   />
-                  <span className="text-[10px] text-theme-faint ml-auto font-medium">Palette</span>
+                  <span className="text-[10px] text-theme-faint ml-auto font-medium">Preview</span>
                 </div>
               </button>
             );
@@ -252,55 +306,70 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
       </Card>
 
-      {/* 2. DISPLAY & CURRENCY */}
+      {/* 3. DISPLAY & REGIONAL PREFERENCES */}
       <Card className="p-5 md:p-6 space-y-4">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-theme-muted flex items-center gap-1.5">
-          <Shield className="w-3.5 h-3.5 text-emerald-500" />
-          Display & Currency
-        </h2>
-
-        {/* Currency */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
-          <div>
-            <div className="text-xs font-semibold text-theme-title">Base Currency</div>
-            <p className="text-[11px] text-theme-muted">Used for net worth and global conversions</p>
-          </div>
-          <Select
-            value={baseCurrency}
-            onChange={(e) => onUpdateCurrency(e.target.value)}
-            containerClassName="w-auto font-semibold"
-          >
-            {AVAILABLE_CURRENCIES.map((c) => (
-              <option key={c.code} value={c.code} className="bg-theme-card text-theme-title">
-                {c.code} ({c.symbol}) - {c.name}
-              </option>
-            ))}
-          </Select>
+        <div>
+          <h2 className="text-xs font-bold uppercase tracking-wider text-theme-muted flex items-center gap-1.5">
+            <Smartphone className="w-3.5 h-3.5 text-emerald-500" />
+            Display & Regional Preferences
+          </h2>
+          <p className="text-[11px] text-theme-faint mt-0.5">
+            Configure default currency formatting and public screen privacy
+          </p>
         </div>
 
-        {/* Privacy Mode */}
-        <div className="flex items-center justify-between pt-3 border-t border-theme">
-          <div>
-            <div className="text-xs font-semibold text-theme-title">Privacy Mode</div>
-            <p className="text-[11px] text-theme-muted">Mask balances with •••••• when in public</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+          {/* Base Currency */}
+          <div className="p-3.5 rounded-xl bg-theme-subtle border border-theme flex flex-col justify-between gap-3">
+            <div>
+              <div className="text-xs font-semibold text-theme-title">Base Currency</div>
+              <p className="text-[11px] text-theme-muted mt-0.5">Primary currency for net worth and global conversions</p>
+            </div>
+            <Select
+              value={baseCurrency}
+              onChange={(e) => onUpdateCurrency(e.target.value)}
+              className="w-full text-xs font-semibold"
+            >
+              {AVAILABLE_CURRENCIES.map((c) => (
+                <option key={c.code} value={c.code} className="bg-theme-card text-theme-title">
+                  {c.code} ({c.symbol}) — {c.name}
+                </option>
+              ))}
+            </Select>
           </div>
-          <Button
-            size="sm"
-            variant={privacyMode ? 'emerald-subtle' : 'secondary'}
-            onClick={onTogglePrivacy}
-            leftIcon={privacyMode ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-          >
-            {privacyMode ? 'Masked' : 'Visible'}
-          </Button>
+
+          {/* Privacy Mode */}
+          <div className="p-3.5 rounded-xl bg-theme-subtle border border-theme flex flex-col justify-between gap-3">
+            <div>
+              <div className="text-xs font-semibold text-theme-title flex items-center justify-between">
+                <span>Privacy Mode</span>
+                <Badge variant={privacyMode ? 'emerald' : 'neutral'} size="xs">
+                  {privacyMode ? 'Masked' : 'Visible'}
+                </Badge>
+              </div>
+              <p className="text-[11px] text-theme-muted mt-0.5">
+                Obscures balance figures with •••••• to protect your financial privacy in public spaces
+              </p>
+            </div>
+            <Button
+              size="sm"
+              variant={privacyMode ? 'emerald-subtle' : 'secondary'}
+              onClick={onTogglePrivacy}
+              leftIcon={privacyMode ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              className="w-full justify-center"
+            >
+              {privacyMode ? 'Disable Privacy Mode' : 'Enable Privacy Mode'}
+            </Button>
+          </div>
         </div>
       </Card>
 
-      {/* 3. CATEGORIES MANAGER */}
+      {/* 4. CATEGORIES MANAGER */}
       <Card className="p-5 md:p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xs font-bold uppercase tracking-wider text-theme-muted">Category Catalog</h2>
-            <p className="text-[11px] text-theme-muted">Manage transaction spending & income categories</p>
+            <p className="text-[11px] text-theme-muted">Manage transaction spending & income categories ({categories.length} total)</p>
           </div>
           <Button
             size="xs"
@@ -308,14 +377,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             onClick={() => setShowAddCat(!showAddCat)}
             leftIcon={<Plus className="w-3 h-3" />}
           >
-            Add Category
+            {showAddCat ? 'Close Form' : 'New'}
           </Button>
         </div>
 
-        {/* Add Category Form Inline */}
+        {/* Inline Add Category Form */}
         {showAddCat && (
-          <form onSubmit={handleCreateCategory} className="p-3.5 bg-theme-subtle border border-theme rounded-xl space-y-2.5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <form onSubmit={handleCreateCategory} className="p-3.5 bg-theme-subtle border border-theme rounded-xl space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <Input
                 placeholder="Category Name"
                 value={catName}
@@ -326,27 +395,30 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 value={catType}
                 onChange={(e) => setCatType(e.target.value as 'expense' | 'income')}
               >
-                <option value="expense">Expense</option>
-                <option value="income">Income</option>
+                <option value="expense">Expense Category</option>
+                <option value="income">Income Category</option>
               </Select>
             </div>
 
             {/* Color swatches */}
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {PRESET_COLORS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setCatColor(c)}
-                  className={`w-4 h-4 rounded-full transition-transform ${
-                    catColor === c ? 'scale-125 ring-2 ring-emerald-500' : 'opacity-60 hover:opacity-100'
-                  }`}
-                  style={{ backgroundColor: c }}
-                />
-              ))}
+            <div>
+              <label className="block text-[11px] font-semibold text-theme-muted mb-1.5">Color Tag</label>
+              <div className="flex items-center gap-2 flex-wrap">
+                {PRESET_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setCatColor(c)}
+                    className={`w-5 h-5 rounded-full transition-all cursor-pointer ${
+                      catColor === c ? 'scale-125 ring-2 ring-emerald-500 shadow-xs' : 'opacity-70 hover:opacity-100'
+                    }`}
+                    style={{ backgroundColor: c }}
+                  />
+                ))}
+              </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-1">
+            <div className="flex justify-end gap-2 pt-1 border-t border-theme">
               <Button
                 variant="ghost"
                 size="xs"
@@ -366,7 +438,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </form>
         )}
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 max-h-56 overflow-y-auto pr-1">
+        {/* Category list */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 max-h-64 overflow-y-auto pr-1">
           {categories.map((c) => {
             const inUseCount = txCountMap[c.id] || 0;
             return (
@@ -386,7 +459,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     <div className="text-[9px] text-theme-faint capitalize">
                       {c.type}
                       {inUseCount > 0 && (
-                        <span className="ml-1 text-[9px] text-emerald-500/80 font-medium">
+                        <span className="ml-1 text-[9px] text-emerald-500 font-medium">
                           • {inUseCount} tx{inUseCount > 1 ? 's' : ''}
                         </span>
                       )}
@@ -398,9 +471,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   onClick={() => {
                     if (inUseCount > 0) {
                       alert(
-                        `Cannot delete category "${c.name}": it is currently used by ${inUseCount} transaction${
+                        `Cannot delete category "${c.name}": it is currently assigned to ${inUseCount} transaction${
                           inUseCount === 1 ? '' : 's'
-                        }. Please reassign or delete the transactions first.`
+                        }. Reassign or delete those transactions first.`
                       );
                       return;
                     }
@@ -408,14 +481,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       onDeleteCategory(c.id);
                     }
                   }}
-                  className={`p-1 transition-opacity ${
+                  className={`p-1 rounded-md transition-opacity cursor-pointer ${
                     inUseCount > 0
-                      ? 'opacity-40 hover:opacity-100 text-theme-faint hover:text-amber-500 cursor-not-allowed'
+                      ? 'opacity-30 hover:opacity-100 text-theme-faint hover:text-amber-500 cursor-not-allowed'
                       : 'opacity-0 group-hover:opacity-100 text-theme-faint hover:text-rose-500'
                   }`}
                   title={
                     inUseCount > 0
-                      ? `In use by ${inUseCount} transaction${inUseCount === 1 ? '' : 's'} (cannot delete)`
+                      ? `Assigned to ${inUseCount} transactions (locked)`
                       : 'Delete category'
                   }
                 >
@@ -427,39 +500,32 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
       </Card>
 
-      {/* 4. BACKUP & EXPORT */}
+      {/* 5. DATA MANAGEMENT & BACKUP */}
       <Card className="p-5 md:p-6 space-y-4">
-        <div className="flex items-center justify-between">
+        <div>
           <h2 className="text-xs font-bold uppercase tracking-wider text-theme-muted flex items-center gap-1.5">
             <Database className="w-3.5 h-3.5 text-sky-500" />
             Data Backup, Import & Portability
           </h2>
-          {onOpenImport && (
-            <Button
-              size="xs"
-              variant="primary"
-              onClick={onOpenImport}
-              leftIcon={<Upload className="w-3.5 h-3.5" />}
-            >
-              Import Data
-            </Button>
-          )}
+          <p className="text-[11px] text-theme-faint mt-0.5">
+            Your data is stored locally in offline SQLite. <br />Export backups or sync securely with cloud storage.
+          </p>
         </div>
 
         {/* Google Drive Integration */}
         {onOpenGDrive && (
-          <div className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 hover:border-emerald-500/35 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 hover:border-emerald-500/30 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500 shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-500 shrink-0">
                 <Cloud className="w-5 h-5" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <div className="text-xs font-bold text-theme-title">Google Drive Cloud Backup & Sync</div>
-                  <Badge variant="success" size="sm">Cloud Sync</Badge>
+                  <div className="text-xs font-bold text-theme-title">Google Drive Cloud Backup</div>
+                  <Badge variant="emerald" size="xs">Cloud Sync</Badge>
                 </div>
                 <p className="text-[11px] text-theme-muted mt-0.5">
-                  Automate scheduled off-site backups, remote cloud snapshots, and multi-device restore.
+                  Automated background snapshots and multi-device cloud restore using your own credentials.
                 </p>
               </div>
             </div>
@@ -476,18 +542,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
         )}
 
+        {/* Data Action Cards (Zero Redundancy) */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div
             onClick={onOpenImport}
             className="flex items-center justify-between p-3.5 bg-theme-subtle hover:bg-theme-subtle-hover border border-theme rounded-xl transition-colors cursor-pointer group"
           >
             <div>
-              <div className="text-xs font-semibold text-theme-title group-hover:text-emerald-500 transition-colors">
+              <div className="text-xs font-bold text-theme-title group-hover:text-emerald-500 transition-colors">
                 Import Ledger
               </div>
-              <p className="text-[10px] text-theme-muted">Upload .json backup or bank .csv ledger</p>
+              <p className="text-[10px] text-theme-muted mt-0.5">Restore .json backup or bank .csv transactions</p>
             </div>
-            <Upload className="w-4 h-4 text-theme-muted group-hover:text-emerald-500 transition-colors" />
+            <Upload className="w-4 h-4 text-theme-muted group-hover:text-emerald-500 transition-colors shrink-0 ml-2" />
           </div>
 
           <a
@@ -496,12 +563,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             className="flex items-center justify-between p-3.5 bg-theme-subtle hover:bg-theme-subtle-hover border border-theme rounded-xl transition-colors group"
           >
             <div>
-              <div className="text-xs font-semibold text-theme-title group-hover:text-sky-500 transition-colors">
+              <div className="text-xs font-bold text-theme-title group-hover:text-sky-500 transition-colors">
                 JSON Database Backup
               </div>
-              <p className="text-[10px] text-theme-muted">All tables, accounts, categories, and ledger</p>
+              <p className="text-[10px] text-theme-muted mt-0.5">Complete export of accounts, budgets & ledger</p>
             </div>
-            <Download className="w-4 h-4 text-theme-muted group-hover:text-sky-500 transition-colors" />
+            <Download className="w-4 h-4 text-theme-muted group-hover:text-sky-500 transition-colors shrink-0 ml-2" />
           </a>
 
           <a
@@ -510,45 +577,60 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             className="flex items-center justify-between p-3.5 bg-theme-subtle hover:bg-theme-subtle-hover border border-theme rounded-xl transition-colors group"
           >
             <div>
-              <div className="text-xs font-semibold text-theme-title group-hover:text-emerald-500 transition-colors">
+              <div className="text-xs font-bold text-theme-title group-hover:text-emerald-500 transition-colors">
                 CSV Ledger Export
               </div>
-              <p className="text-[10px] text-theme-muted">Compatible with Excel, Sheets & Numbers</p>
+              <p className="text-[10px] text-theme-muted mt-0.5">Compatible with Excel, Google Sheets & Numbers</p>
             </div>
-            <Download className="w-4 h-4 text-theme-muted group-hover:text-emerald-500 transition-colors" />
+            <Download className="w-4 h-4 text-theme-muted group-hover:text-emerald-500 transition-colors shrink-0 ml-2" />
           </a>
         </div>
       </Card>
 
-      {/* 5. DEMO SEED RESET */}
+      {/* 6. SAMPLE DEMO DATA (Admin Only) */}
       <Card className="p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="text-xs font-semibold text-theme-title flex items-center gap-1.5">
             <RefreshCw className="w-3.5 h-3.5 text-amber-500" />
             Sample Demo Ledger
+            {!isAdmin && (
+              <span className="text-[10px] text-amber-500 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded-full flex items-center gap-1 font-medium">
+                <Lock className="w-2.5 h-2.5" />
+                Admin Only
+              </span>
+            )}
           </div>
           <p className="text-[11px] text-theme-muted mt-0.5">
             Reset database with authentic multi-account financial records and test data
+            {!isAdmin && ' (Requires Administrator role)'}
           </p>
         </div>
 
         <Button
           onClick={handleSeed}
+          disabled={!isAdmin}
           isLoading={seedLoading}
           variant="secondary"
           size="sm"
           leftIcon={<RefreshCw className={`w-3 h-3 ${seedLoading ? 'animate-spin' : ''}`} />}
-          className="text-amber-500 border-amber-500/30 hover:bg-amber-500/10 self-start sm:self-auto"
+          className="text-amber-500 border-amber-500/30 hover:bg-amber-500/10 self-start sm:self-auto disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Reset & Seed Demo
         </Button>
       </Card>
 
       {/* FOOTNOTE */}
-      <div className="p-3.5 rounded-xl bg-theme-subtle border border-theme text-center text-[11px] text-theme-muted flex items-center justify-center gap-1.5">
+      <div className="p-3 rounded-xl bg-theme-subtle border border-theme text-center text-[11px] text-theme-muted flex items-center justify-center gap-1.5">
         <Smartphone className="w-3.5 h-3.5 text-emerald-500" />
-        <span>urpwallet (Your Personal Wallet) • Open Source • Offline Local SQLite</span>
+        <span>urpwallet • Open Source Personal Finance • Offline Local SQLite</span>
       </div>
+
+      {/* CHANGE PASSWORD MODAL */}
+      <ChangePasswordModal
+        isOpen={changePasswordOpen}
+        onClose={() => setChangePasswordOpen(false)}
+      />
     </div>
   );
 };
+

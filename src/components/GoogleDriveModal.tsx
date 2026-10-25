@@ -337,14 +337,14 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
         {status?.connected ? (
           <div className="space-y-4">
             {/* Compact Header Bar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-theme-base">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500 shrink-0">
                   <Cloud className="w-4 h-4" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-theme-main truncate max-w-[220px]">
+                    <span className="text-xs font-bold text-theme-main truncate max-w-55">
                       {status.email || 'Google Drive'}
                     </span>
                     <Badge variant={status.hasDriveScope !== false ? 'success' : 'amber'} size="sm">
@@ -379,14 +379,14 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
 
             {/* Segmented View Switcher */}
             <div className="flex items-center justify-between">
-              <div className="flex p-0.5 rounded-lg bg-theme-base/60 border border-theme-base text-xs">
+              <div className="flex p-0.5 rounded-lg border border-theme bg-theme-base/60 text-xs space-x-1.5">
                 <button
                   type="button"
                   onClick={() => setActiveTab('backups')}
-                  className={`px-3 py-1 rounded-md font-medium transition-all flex items-center gap-1.5 ${
+                  className={`px-3 py-1.5 rounded-md font-medium transition-all flex items-center gap-1.5 ${
                     activeTab === 'backups'
-                      ? 'bg-theme-surface text-theme-main shadow-xs font-semibold'
-                      : 'text-theme-muted hover:text-theme-main'
+                      ? 'bg-emerald-500 text-emerald-500 font-bold text-theme-main shadow-xs'
+                      : 'bg-theme-base text-theme-muted hover:text-theme-main'
                   }`}
                 >
                   <HardDrive className="w-3.5 h-3.5" />
@@ -401,8 +401,8 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
                   onClick={() => setActiveTab('settings')}
                   className={`px-3 py-1 rounded-md font-medium transition-all flex items-center gap-1.5 ${
                     activeTab === 'settings'
-                      ? 'bg-theme-surface text-theme-main shadow-xs font-semibold'
-                      : 'text-theme-muted hover:text-theme-main'
+                      ? 'bg-emerald-500 text-emerald-500 font-bold text-theme-main shadow-xs'
+                      : 'bg-theme-base text-theme-muted hover:text-theme-main'
                   }`}
                 >
                   <Settings className="w-3.5 h-3.5" />
@@ -433,12 +433,6 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
                         <RotateCcw className="w-3.5 h-3.5 text-emerald-500" />
                         <span>Restore Snapshot: {selectedBackupForRestore.name}</span>
                       </div>
-                      <button
-                        onClick={() => setSelectedBackupForRestore(null)}
-                        className="text-xs text-theme-muted hover:text-theme-main"
-                      >
-                        Cancel
-                      </button>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 text-xs">
@@ -514,11 +508,11 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
                     </Button>
                   </div>
                 ) : (
-                  <div className="max-h-[300px] overflow-y-auto space-y-1.5 pr-1">
+                  <div className="max-h-75 overflow-y-auto space-y-1.5 pr-1">
                     {backups.map((b) => (
                       <div
                         key={b.id}
-                        className="px-3 py-2.5 rounded-xl border border-theme-base bg-theme-surface hover:border-theme-muted/40 transition-colors flex items-center justify-between gap-3 text-xs"
+                        className="px-3 py-2.5 rounded-xl bg-theme-subtle hover:border-theme-muted/40 transition-colors flex items-center justify-between gap-3 text-xs"
                       >
                         <div className="min-w-0 flex-1">
                           <div className="font-medium text-theme-main truncate text-xs">
@@ -543,16 +537,17 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
                             className="h-7 px-2 text-[11px]"
                           >
                             <CloudDownload className="w-3 h-3 text-emerald-500" />
-                            <span>Restore</span>
                           </Button>
-                          <button
+                          <Button
+                            size="xs"
+                            variant="rose-subtle"
                             onClick={() => handleDeleteBackup(b.id, b.name)}
                             disabled={actionLoading}
                             title="Delete snapshot"
-                            className="p-1.5 text-theme-muted hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors"
+                            className="h-7 px-2 text-[11px]"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -563,9 +558,9 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
 
             {/* TAB 2: SETTINGS & SCHEDULE */}
             {activeTab === 'settings' && (
-              <div className="space-y-3 animate-in fade-in">
+              <div className="space-y-2 animate-in fade-in">
                 {/* Auto Backup Box */}
-                <div className="p-3.5 rounded-xl border border-theme-base bg-theme-surface space-y-3">
+                <div className="p-3.5 rounded-xl bg-theme-subtle space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-xs font-semibold text-theme-main">Scheduled Auto-Backup</div>
@@ -582,12 +577,12 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
                           handleSaveSchedule(val, frequency, retentionCount);
                         }}
                       />
-                      <div className="w-9 h-5 bg-zinc-700/50 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                      <div className="w-9 h-5 bg-zinc-700/50 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
                     </label>
                   </div>
 
                   {autoBackup && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-theme-base text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-theme text-xs">
                       <div>
                         <label className="block text-[11px] font-medium text-theme-muted mb-1">
                           Frequency
@@ -630,10 +625,10 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
                 </div>
 
                 {/* Account & Connection Settings */}
-                <div className="p-3.5 rounded-xl border border-theme-base bg-theme-surface flex items-center justify-between gap-3 text-xs">
+                <div className="p-3.5 rounded-xl bg-theme-subtle flex items-center justify-between gap-3 text-xs">
                   <div>
                     <div className="font-medium text-theme-main">{status.email || 'Google Drive'}</div>
-                    <div className="text-[10px] text-theme-muted font-mono truncate max-w-[240px]">
+                    <div className="text-[10px] text-theme-muted font-mono truncate max-w-60">
                       Scope: {status.scopeType === 'full' ? 'drive (Full)' : 'drive.file (App Folder)'}
                     </div>
                   </div>
@@ -669,19 +664,19 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
           <div className="space-y-4">
             <div className="bg-theme-surface space-y-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-zinc-800/40 border border-zinc-700/40 text-theme-muted flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-theme-subtle border border-zinc-700/40 text-theme-muted flex items-center justify-center shrink-0">
                   <Cloud className="w-5 h-5 text-emerald-500" />
                 </div>
                 <div>
                   <h4 className="text-xs font-bold text-theme-main">Connect Your Google Drive</h4>
                   <p className="text-[11px] text-theme-muted">
-                    Automate cloud snapshots to your personal Google Drive with end-to-end control.
+                    Automate cloud snapshots to your Google Drive with full control.
                   </p>
                 </div>
               </div>
 
               {/* Accordion Setup Guide */}
-              <div className="rounded-lg border border-theme-base overflow-hidden text-xs">
+              <div className="rounded-lg bg-theme-subtle overflow-hidden text-xs">
                 <button
                   type="button"
                   onClick={() => setShowSetupGuide(!showSetupGuide)}
@@ -697,7 +692,7 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
                 </button>
 
                 {showSetupGuide && (
-                  <div className="p-3 border-t border-theme-base text-[11px] text-theme-muted space-y-1.5 bg-theme-app/40">
+                  <div className="p-3 border-t border-theme text-[11px] text-theme-muted space-y-1.5 bg-theme-app/40">
                     <ol className="list-decimal pl-4 space-y-1">
                       <li>
                         Open <a href="https://console.cloud.google.com/" target="_blank" rel="noreferrer" className="text-emerald-500 hover:underline inline-flex items-center gap-0.5">Google Cloud Console <ExternalLink className="w-2.5 h-2.5" /></a> and create a project.
@@ -706,7 +701,7 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
                       <li>In <strong>Credentials &gt; Create Credentials</strong>, select <strong>OAuth client ID (Web application)</strong>.</li>
                       <li>
                         Set <strong>Authorized redirect URIs</strong> to:
-                        <div className="p-1 mt-1 rounded bg-black/40 font-mono text-[10px] text-emerald-400 select-all">
+                        <div className="p-1 mt-1 rounded bg-theme font-mono text-[10px] text-emerald-400 select-all">
                           {redirectUriPreview}
                         </div>
                       </li>
@@ -720,11 +715,12 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
               {/* Credentials Inputs */}
               <div className="space-y-2.5 text-xs">
                 <div>
-                  <label className="block text-[11px] font-medium text-theme-main mb-1">
-                    Google Client ID
+                  <label htmlFor='google-client-id' className="block text-[11px] font-medium text-theme-main mb-1">
+                    Google Client ID <span className="text-[10px] text-rose-500">*</span>
                   </label>
                   <Input
                     type="text"
+                    id='google-client-id'
                     placeholder="e.g. 123456789-abc.apps.googleusercontent.com"
                     value={clientId}
                     onChange={(e) => setClientId(e.target.value)}
@@ -732,11 +728,12 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-medium text-theme-main mb-1">
-                    Google Client Secret
+                  <label htmlFor='google-client-secret' className="block text-[11px] font-medium text-theme-main mb-1">
+                    Google Client Secret <span className="text-[10px] text-rose-500">*</span>
                   </label>
                   <Input
                     type="password"
+                    id='google-client-secret'
                     placeholder="e.g. GOCSPX-xxxxxxxxxxxxxxxx"
                     value={clientSecret}
                     onChange={(e) => setClientSecret(e.target.value)}
@@ -749,10 +746,10 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
                     Permission Scope
                   </label>
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    <label className={`p-2 rounded-lg border cursor-pointer flex items-center gap-2 transition-colors ${
+                    <label className={`p-2 rounded-lg cursor-pointer flex items-center gap-2 transition-colors ${
                       scopeType === 'file'
-                        ? 'border-emerald-500 bg-emerald-500/10 text-theme-main'
-                        : 'border-theme-base bg-theme-surface text-theme-muted'
+                        ? 'border border-emerald-500 bg-emerald-500/10 text-theme-main'
+                        : 'bg-theme text-theme-muted'
                     }`}>
                       <input
                         type="radio"
@@ -764,10 +761,10 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
                       <span className="font-medium text-[11px]">App Folder Only (Recommended)</span>
                     </label>
 
-                    <label className={`p-2 rounded-lg border cursor-pointer flex items-center gap-2 transition-colors ${
+                    <label className={`p-2 rounded-lg cursor-pointer flex items-center gap-2 transition-colors ${
                       scopeType === 'full'
-                        ? 'border-emerald-500 bg-emerald-500/10 text-theme-main'
-                        : 'border-theme-base bg-theme-surface text-theme-muted'
+                        ? 'border border-emerald-500 bg-emerald-500/10 text-theme-main'
+                        : 'bg-theme text-theme-muted'
                     }`}>
                       <input
                         type="radio"
@@ -782,7 +779,7 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
                 </div>
 
                 {/* Important Checkbox Tip */}
-                <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-theme-muted">
+                <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-theme-muted">
                   <span className="font-semibold text-emerald-500">Notice:</span> On Google&apos;s sign-in screen, remember to check:
                   <div className="font-medium text-theme-main mt-0.5">
                     ☑️ &quot;See, edit, create, and delete only the specific Google Drive files you use with this app&quot;

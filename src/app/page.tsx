@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   DashboardData, Transaction, Account, Category, Budget,
   PlannedPayment, Debt, TransactionType
@@ -24,12 +25,28 @@ import { AddDebtModal } from '@/components/AddDebtModal';
 import { RecordDebtPaymentModal } from '@/components/RecordDebtPaymentModal';
 import { ImportModal } from '@/components/ImportModal';
 import { GoogleDriveModal } from '@/components/GoogleDriveModal';
+import { useAuth } from '@/context/AuthContext';
+import { AuthSetupScreen } from '@/components/auth/AuthSetupScreen';
+import { AuthLoginScreen } from '@/components/auth/AuthLoginScreen';
 
 export default function WalletApp() {
+  const { user, isLoading: authLoading, isSetup } = useAuth();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [loading, setLoading] = useState<boolean>(true);
   const [privacyMode, setPrivacyMode] = useState<boolean>(false);
   const [baseCurrency, setBaseCurrency] = useState<string>('USD');
+
+  // Route protection redirect
+  useEffect(() => {
+    if (!authLoading) {
+      if (!isSetup) {
+        router.replace('/setup');
+      } else if (!user) {
+        router.replace('/login');
+      }
+    }
+  }, [authLoading, isSetup, user, router]);
 
   // Master Data
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
@@ -67,6 +84,7 @@ export default function WalletApp() {
 
   // Fetch all data
   const refreshData = useCallback(async () => {
+    if (!user) return;
     try {
       const [dashRes, txRes, accRes, catRes, budRes, planRes, debtRes, setRes] = await Promise.all([
         fetch('/api/dashboard'),
@@ -110,11 +128,13 @@ export default function WalletApp() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
-    refreshData();
-  }, [refreshData]);
+    if (user) {
+      refreshData();
+    }
+  }, [refreshData, user]);
 
   // Handle Google Drive OAuth callback & background scheduled backup sync
   useEffect(() => {
@@ -251,6 +271,25 @@ export default function WalletApp() {
     setAddTxType(type);
     setAddTxOpen(true);
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-theme-app flex flex-col items-center justify-center text-theme-muted">
+        <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 mb-3 animate-pulse">
+          <span className="font-bold text-base">W</span>
+        </div>
+        <p className="text-xs font-medium text-theme-muted">Verifying secure session...</p>
+      </div>
+    );
+  }
+
+  if (!isSetup) {
+    return <AuthSetupScreen />;
+  }
+
+  if (!user) {
+    return <AuthLoginScreen />;
+  }
 
   if (loading) {
     return (

@@ -96,7 +96,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* 3-Column Cash Flow Metrics */}
-        <div className="grid grid-cols-3 gap-3 md:gap-4 mt-5 pt-4 border-t border-theme">
+        <div className="grid grid-cols-3 gap-3 md:gap-4 pt-4">
           <div className="p-3 rounded-xl bg-theme-subtle border border-theme">
             <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-500 mb-0.5">
               <TrendingUp className="w-3.5 h-3.5" />
@@ -179,7 +179,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {/* Add Account Trigger */}
           <div
             onClick={() => onSelectTab('accounts')}
-            className="flex items-center justify-center gap-2 p-3.5 rounded-xl border border-dashed border-theme hover:border-emerald-500/50 bg-theme-card hover:bg-theme-subtle cursor-pointer transition-all text-theme-muted hover:text-emerald-500 text-xs font-semibold min-h-[82px]"
+            className="flex items-center justify-center gap-2 p-3.5 rounded-xl border border-dashed border-theme hover:border-emerald-500/50 bg-theme-card hover:bg-theme-subtle cursor-pointer transition-all text-theme-muted hover:text-emerald-500 text-xs font-semibold min-h-20.5"
           >
             <Plus className="w-4 h-4" />
             <span>Add Account</span>
@@ -383,7 +383,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         {tx.note && (
                           <>
                             <span>•</span>
-                            <span className="truncate max-w-[140px] text-theme-faint">{tx.note}</span>
+                            <span className="truncate max-w-35 text-theme-faint">{tx.note}</span>
                           </>
                         )}
                       </div>
