@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
+import { requireAuth } from '@/lib/auth';
 import { Account, Category } from '@/types';
 
 function parseCSV(text: string): Record<string, string>[] {
@@ -76,6 +77,9 @@ function parseCSV(text: string): Record<string, string>[] {
 
 export async function POST(req: Request) {
   try {
+    const auth = await requireAuth();
+    if (auth.errorResponse) return auth.errorResponse;
+
     const db = getDb();
     const contentType = req.headers.get('content-type') || '';
 
@@ -102,6 +106,13 @@ export async function POST(req: Request) {
       format = body.format || (trimmed.startsWith('{') || trimmed.startsWith('[') ? 'json' : 'csv');
       mode = body.mode || 'merge';
       defaultAccountId = body.defaultAccountId || undefined;
+    }
+
+    if (mode === 'replace' && auth.user.role !== 'admin') {
+      return NextResponse.json(
+        { error: 'Forbidden: Full database replace import requires Administrator role' },
+        { status: 403 }
+      );
     }
 
     if (!contentStr || !contentStr.trim()) {

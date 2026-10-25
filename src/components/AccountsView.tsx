@@ -114,6 +114,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
       id: 'all' as FilterTab,
       label: 'All Accounts',
       count: accounts.length,
+      activeColor: 'emerald' as const,
     },
     {
       id: 'assets' as FilterTab,
@@ -141,7 +142,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
       <Card
         key={acc.id}
         hoverable
-        className="p-4 flex flex-col justify-between min-h-[142px] group border-theme hover:border-theme-strong transition-all relative overflow-hidden"
+        className="p-4 flex flex-col justify-between min-h-35.5 group border-theme hover:border-theme-strong transition-all relative overflow-hidden"
       >
         {/* Top subtle color indicator line */}
         <div
@@ -234,7 +235,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
     <div
       key="add-account-card"
       onClick={onOpenAddAccount}
-      className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-dashed border-theme hover:border-emerald-500/50 bg-theme-card/60 hover:bg-theme-subtle cursor-pointer transition-all text-theme-muted hover:text-emerald-500 min-h-[142px] group text-center"
+      className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-dashed border-theme hover:border-emerald-500/50 bg-theme-card/60 hover:bg-theme-subtle cursor-pointer transition-all text-theme-muted hover:text-emerald-500 min-h-35.5 group text-center"
     >
       <div className="w-9 h-9 rounded-xl bg-theme-subtle group-hover:bg-emerald-500/10 border border-theme group-hover:border-emerald-500/25 flex items-center justify-center text-theme-muted group-hover:text-emerald-500 transition-colors shadow-xs">
         <Plus className="w-4 h-4 stroke-[2.5]" />
@@ -325,7 +326,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
             items={tabItems}
             activeTab={filterTab}
             onChange={(t) => setFilterTab(t)}
-            className="w-full sm:w-auto min-w-[340px]"
+            className="w-full sm:w-auto min-w-85 whitespace-nowrap"
           />
 
           <span className="text-xs text-theme-muted hidden sm:inline tabular-nums">
@@ -376,7 +377,6 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
                 {assetAccounts.map(renderAccountCard)}
-                {renderAddCard()}
               </div>
             </div>
           )}

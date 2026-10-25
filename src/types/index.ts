@@ -144,3 +144,41 @@ export interface DashboardData {
   categoryBreakdown: CategoryBreakdown[];
   cashFlowTrend: CashFlowTrendItem[];
 }
+
+// Authentication & Authorization Types
+export type UserRole = 'admin' | 'member';
+
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  name: string;
+  password_hash: string;
+  password_salt: string;
+  role: UserRole;
+  created_at: string;
+  updated_at: string;
+}
+
+export type UserSafe = Omit<User, 'password_hash' | 'password_salt'>;
+
+export interface Session {
+  id: string;
+  user_id: string;
+  token: string;
+  expires_at: string;
+  created_at: string;
+}
+
+export interface AuthContextType {
+  user: UserSafe | null;
+  isLoading: boolean;
+  isSetup: boolean;
+  isAdmin: boolean;
+  login: (identifier: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  setupMaster: (name: string, username: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
+  refreshAuth: () => Promise<void>;
+  setIsSetup?: (isSetup: boolean) => void;
+}
+

@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
+import { requireAuth } from '@/lib/auth';
 
 
 export async function GET(req: Request) {
   try {
+    const auth = await requireAuth();
+    if (auth.errorResponse) return auth.errorResponse;
+
     const db = getDb();
     const { searchParams } = new URL(req.url);
     const format = searchParams.get('format') || 'json';

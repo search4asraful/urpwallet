@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
 
 const DB_DIR = path.join(process.cwd(), 'data');
 const DB_PATH = path.join(DB_DIR, 'wallet.db');
@@ -11,7 +11,7 @@ if (!fs.existsSync(DB_DIR)) {
 
 // Global database instance for Next.js hot reload
 declare global {
-  // eslint-disable-next-line no-var
+   
   var __db: Database.Database | undefined;
 }
 
@@ -116,6 +116,32 @@ function initTables(db: Database.Database) {
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      username TEXT UNIQUE NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      name TEXT NOT NULL,
+      password_hash TEXT NOT NULL,
+      password_salt TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'member', -- 'admin' | 'member'
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS sessions (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      token TEXT UNIQUE NOT NULL,
+      expires_at TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
+    CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
+    CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+    CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
   `);
 
   // Check if categories are empty, if so, seed
@@ -243,7 +269,7 @@ export function seedDatabase(db: Database.Database = getDb()) {
 
   // Debts & Loans
   const debts = [
-    { id: 'd_1', type: 'loan_owed_to_me', person_name: 'Alex Johnson', amount: 160.00, settled_amount: 60.00, due_date: `${year}-${month}-30`, notes: 'Concert tickets upfront cost', status: 'active' },
+    { id: 'd_1', type: 'loan_owed_to_me', person_name: 'Sayem Ahamed', amount: 160.00, settled_amount: 60.00, due_date: `${year}-${month}-30`, notes: 'Concert tickets upfront cost', status: 'active' },
     { id: 'd_2', type: 'debt_i_owe', person_name: 'Sarah Miller', amount: 45.00, settled_amount: 0.00, due_date: `${year}-${month}-25`, notes: 'Group dinner bill split', status: 'active' },
   ];
 

@@ -119,7 +119,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
             {/* Donut Chart */}
-            <div className="lg:col-span-6 min-h-[260px] h-64 w-full relative flex items-center justify-center">
+            <div className="lg:col-span-6 min-h-65 h-64 w-full relative flex items-center justify-center">
               {mounted ? (
                 <>
                   <ResponsiveContainer width="100%" height={260}>
@@ -166,7 +166,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   </ResponsiveContainer>
 
                   {/* Center Stat Display */}
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none select-none max-w-[130px] px-2">
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none select-none max-w-32.5 px-2">
                     <div className="text-[10px] uppercase font-bold tracking-wider text-theme-faint truncate">
                       {activeItem ? activeItem.name : 'Monthly Spend'}
                     </div>
@@ -190,7 +190,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             </div>
 
             {/* Category breakdown legend */}
-            <div className="lg:col-span-6 space-y-1.5 max-h-64 overflow-y-auto pr-1">
+            <div className="lg:col-span-6 pr-1">
               {pieData.map((item) => {
                 const isActive = activeCategory === item.name;
                 return (
@@ -243,7 +243,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             className="py-10 border-0 bg-transparent shadow-none"
           />
         ) : (
-          <div className="min-h-[260px] h-64 w-full">
+          <div className="min-h-65 h-64 w-full">
             {mounted ? (
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={cashFlowTrend} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>

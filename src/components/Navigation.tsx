@@ -5,9 +5,11 @@ import {
   LayoutDashboard, Receipt, PieChart, MoreHorizontal, Plus,
   CreditCard, Calendar, Users, BarChart3, Settings, Eye, EyeOff,
   ArrowDownRight, ArrowUpRight, ArrowLeftRight, Wallet as WalletIcon,
-  ChevronRight, Sun, Moon, Monitor, Sparkles, CircleDot, Check, Cloud
+  ChevronRight, Sun, Moon, Monitor, Sparkles, CircleDot, Check, Cloud,
+  LogOut, ShieldCheck, ShieldAlert
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
+import { useAuth } from '@/context/AuthContext';
 import { ThemeMode } from '@/types';
 import { Button } from '@/components/ui';
 
@@ -38,6 +40,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   const themeMenuRef = useRef<HTMLDivElement>(null);
 
   const { themeMode, resolvedTheme, systemTheme, setTheme } = useTheme();
+  const { user, isAdmin, logout } = useAuth();
 
   // Close theme dropdown when clicking outside
   useEffect(() => {
@@ -198,6 +201,41 @@ export const Navigation: React.FC<NavigationProps> = ({
             </div>
           )}
 
+          {/* User Account & Role Badge */}
+          {user && (
+            <div className="p-2 rounded-xl bg-theme-subtle border border-theme flex items-center justify-between">
+              <div className="flex items-center gap-2 overflow-hidden">
+                <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold text-xs shrink-0">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="overflow-hidden">
+                  <div className="text-xs font-semibold text-theme-title truncate leading-tight">
+                    {user.name}
+                  </div>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <span
+                      className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded ${
+                        isAdmin
+                          ? 'bg-purple-500/20 text-purple-400'
+                          : 'bg-blue-500/20 text-blue-400'
+                      }`}
+                    >
+                      {isAdmin ? 'Admin' : 'Member'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => logout()}
+                title="Sign out of wallet"
+                className="p-1.5 rounded-lg text-theme-muted hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
           {/* SQLite Status Card */}
           <div className="p-2.5 rounded-xl bg-theme-subtle border border-theme text-[11px] text-theme-muted">
             <div className="flex items-center justify-between font-semibold mb-0.5 text-theme-main">
@@ -326,6 +364,18 @@ export const Navigation: React.FC<NavigationProps> = ({
                 <span className="hidden sm:inline">New Entry</span>
                 <span className="sm:hidden">Entry</span>
               </Button>
+
+              {/* Sign Out (Mobile / Header) */}
+              {user && (
+                <button
+                  type="button"
+                  onClick={() => logout()}
+                  title={`Sign out (${user.name})`}
+                  className="md:hidden h-8 w-8 rounded-lg border border-theme bg-theme-card hover:bg-rose-500/10 text-theme-muted hover:text-rose-400 flex items-center justify-center transition-colors"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
           </div>
         </header>
