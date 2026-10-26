@@ -4,9 +4,9 @@
   "description": "urpwallet (short form of Your Personal Wallet) — An open-source personal wallet for everyone",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 9008",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 9008",
     "lint": "eslint"
   },
   "dependencies": {

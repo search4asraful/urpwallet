@@ -52,7 +52,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser. That's it! 🎉
+Open [http://localhost:9008](http://localhost:9008) in your browser. That's it! 🎉
 
 > 💡 **Newbie Tip**: Want to try it out with data right away?  
 > Go to **Settings** in the sidebar and click **"Seed Sample Data"** to load realistic demo accounts, transactions, and budgets with one click.
@@ -74,7 +74,7 @@ data/wallet.db
 
 | Command | What it does |
 | :--- | :--- |
-| `npm run dev` | Runs the app in development mode at `localhost:3000` |
+| `npm run dev` | Runs the app in development mode at `localhost:9008` |
 | `npm run build` | Builds the optimized production version |
 | `npm run start` | Starts the production server |
 | `npm run lint` | Checks code formatting and catches potential bugs |

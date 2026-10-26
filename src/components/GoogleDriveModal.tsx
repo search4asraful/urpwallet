@@ -275,7 +275,7 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
 
   const redirectUriPreview = typeof window !== 'undefined'
     ? `${window.location.origin}/api/gdrive/callback`
-    : 'http://localhost:3000/api/gdrive/callback';
+    : 'http://localhost:9008/api/gdrive/callback';
 
   return (
     <Modal
