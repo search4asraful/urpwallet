@@ -17,7 +17,8 @@ export async function POST(req: Request) {
     const backupData = await downloadGDriveBackup(fileId, db);
 
     // 2. Delegate to the import engine for atomic database restoration
-    const importReq = new Request('http://localhost:3000/api/import', {
+    const origin = req.url ? new URL(req.url).origin : `http://localhost:${process.env.PORT || '9008'}`;
+    const importReq = new Request(`${origin}/api/import`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
