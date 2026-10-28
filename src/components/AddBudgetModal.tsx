@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Check } from 'lucide-react';
 import { Budget, Category, BudgetPeriod } from '@/types';
 import { getCurrencySymbol } from '@/lib/utils';
@@ -32,7 +32,13 @@ export const AddBudgetModal: React.FC<AddBudgetModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const [prevBudgetKey, setPrevBudgetKey] = useState<string | null>(
+    isOpen ? (editingBudget ? `${editingBudget.id}_${editingBudget.amount}` : '__new__') : null
+  );
+
+  const currentBudgetKey = isOpen ? (editingBudget ? `${editingBudget.id}_${editingBudget.amount}` : '__new__') : null;
+  if (currentBudgetKey !== prevBudgetKey) {
+    setPrevBudgetKey(currentBudgetKey);
     const today = new Date();
     const y = today.getFullYear();
     const m = String(today.getMonth() + 1).padStart(2, '0');
@@ -55,7 +61,7 @@ export const AddBudgetModal: React.FC<AddBudgetModalProps> = ({
       setEndDate(lastDay);
     }
     setError(null);
-  }, [isOpen, editingBudget, categories]);
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

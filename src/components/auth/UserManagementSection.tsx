@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { UserSafe } from '@/types';
 import { useAuth } from '@/context/AuthContext';
-import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
@@ -61,7 +60,10 @@ export function UserManagementSection({ currentUserId }: UserManagementSectionPr
   }, []);
 
   useEffect(() => {
-    fetchUsers();
+    const timer = setTimeout(() => {
+      fetchUsers();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [fetchUsers]);
 
   const handleCreateUser = async (e: React.FormEvent) => {

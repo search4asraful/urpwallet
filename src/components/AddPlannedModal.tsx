@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Check } from 'lucide-react';
 import { PlannedPayment, Account, Category, PlannedFrequency } from '@/types';
 import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
@@ -37,7 +37,13 @@ export const AddPlannedModal: React.FC<AddPlannedModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const [prevPlannedKey, setPrevPlannedKey] = useState<string | null>(
+    isOpen ? (editingPlanned ? `${editingPlanned.id}_${editingPlanned.amount}` : '__new__') : null
+  );
+
+  const currentPlannedKey = isOpen ? (editingPlanned ? `${editingPlanned.id}_${editingPlanned.amount}` : '__new__') : null;
+  if (currentPlannedKey !== prevPlannedKey) {
+    setPrevPlannedKey(currentPlannedKey);
     const today = new Date().toISOString().split('T')[0];
     if (editingPlanned) {
       setName(editingPlanned.name);
@@ -61,7 +67,7 @@ export const AddPlannedModal: React.FC<AddPlannedModalProps> = ({
       setAutoRecord(false);
     }
     setError(null);
-  }, [isOpen, editingPlanned, accounts, categories]);
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

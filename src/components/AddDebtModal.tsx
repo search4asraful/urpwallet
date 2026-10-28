@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Check, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import { Debt, DebtType } from '@/types';
 import { getCurrencySymbol } from '@/lib/utils';
@@ -29,7 +29,13 @@ export const AddDebtModal: React.FC<AddDebtModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const [prevDebtKey, setPrevDebtKey] = useState<string | null>(
+    isOpen ? (editingDebt ? `${editingDebt.id}_${editingDebt.amount}` : '__new__') : null
+  );
+
+  const currentDebtKey = isOpen ? (editingDebt ? `${editingDebt.id}_${editingDebt.amount}` : '__new__') : null;
+  if (currentDebtKey !== prevDebtKey) {
+    setPrevDebtKey(currentDebtKey);
     if (editingDebt) {
       setType(editingDebt.type);
       setPersonName(editingDebt.person_name);
@@ -44,7 +50,7 @@ export const AddDebtModal: React.FC<AddDebtModalProps> = ({
       setNotes('');
     }
     setError(null);
-  }, [isOpen, editingDebt]);
+  }
 
   const handleQuickDueDate = (daysToAdd: number) => {
     const target = new Date();

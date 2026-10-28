@@ -132,20 +132,28 @@ export default function WalletApp() {
 
   useEffect(() => {
     if (user) {
-      refreshData();
+      const timer = setTimeout(() => {
+        refreshData();
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [refreshData, user]);
 
   // Handle Google Drive OAuth callback & background scheduled backup sync
   useEffect(() => {
+    let openTimer: NodeJS.Timeout | undefined;
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
       if (url.searchParams.has('gdrive')) {
-        setGdriveOpen(true);
+        openTimer = setTimeout(() => {
+          setGdriveOpen(true);
+        }, 0);
         url.searchParams.delete('gdrive');
         window.history.replaceState({}, '', url.toString());
       } else if (url.searchParams.has('gdrive_error')) {
-        setGdriveOpen(true);
+        openTimer = setTimeout(() => {
+          setGdriveOpen(true);
+        }, 0);
         url.searchParams.delete('gdrive_error');
         window.history.replaceState({}, '', url.toString());
       }
@@ -166,6 +174,7 @@ export default function WalletApp() {
     const interval = setInterval(checkAutoSync, 5 * 60 * 1000);
 
     return () => {
+      if (openTimer) clearTimeout(openTimer);
       clearTimeout(initialTimer);
       clearInterval(interval);
     };

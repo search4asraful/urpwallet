@@ -6,7 +6,7 @@ import {
   CreditCard, Calendar, Users, BarChart3, Settings, Eye, EyeOff,
   ArrowDownRight, ArrowUpRight, ArrowLeftRight, Wallet as WalletIcon,
   ChevronRight, Sun, Moon, Monitor, Sparkles, CircleDot, Check, Cloud,
-  LogOut, ShieldCheck, ShieldAlert
+  LogOut
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';

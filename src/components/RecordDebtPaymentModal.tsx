@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Check, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import { Debt, Account } from '@/types';
 import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
@@ -35,13 +35,19 @@ export const RecordDebtPaymentModal: React.FC<RecordDebtPaymentModalProps> = ({
 
   const remaining = debt ? Math.max(0, debt.amount - debt.settled_amount) : 0;
 
-  useEffect(() => {
+  const [prevDebtKey, setPrevDebtKey] = useState<string | null>(
+    isOpen && debt ? `${debt.id}_${debt.settled_amount}` : null
+  );
+
+  const currentDebtKey = isOpen && debt ? `${debt.id}_${debt.settled_amount}` : null;
+  if (currentDebtKey !== prevDebtKey) {
+    setPrevDebtKey(currentDebtKey);
     if (isOpen && debt) {
       const rem = Math.max(0, debt.amount - debt.settled_amount);
       setAmount(rem > 0 ? rem.toFixed(2) : '');
       setError(null);
     }
-  }, [isOpen, debt]);
+  }
 
   if (!debt) return null;
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Check } from 'lucide-react';
 import { Account, AccountType } from '@/types';
 import { getCurrencySymbol } from '@/lib/utils';
@@ -50,7 +50,13 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const [prevAccountKey, setPrevAccountKey] = useState<string | null>(
+    isOpen ? (editingAccount ? `${editingAccount.id}_${editingAccount.balance}` : '__new__') : null
+  );
+
+  const currentAccountKey = isOpen ? (editingAccount ? `${editingAccount.id}_${editingAccount.balance}` : '__new__') : null;
+  if (currentAccountKey !== prevAccountKey) {
+    setPrevAccountKey(currentAccountKey);
     if (editingAccount) {
       setName(editingAccount.name);
       setType(editingAccount.type);
@@ -67,7 +73,7 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
       setIcon('CreditCard');
     }
     setError(null);
-  }, [isOpen, editingAccount, baseCurrency]);
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

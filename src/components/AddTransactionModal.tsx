@@ -49,32 +49,82 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   const [isCategoryOpen, setIsCategoryOpen] = useState<boolean>(false);
   const [categorySearch, setCategorySearch] = useState<string>('');
   const [recentCatIds, setRecentCatIds] = useState<string[]>([]);
+  const [prevIsCatOpen, setPrevIsCatOpen] = useState(false);
 
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
   const categoryButtonRef = useRef<HTMLButtonElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!isOpen) {
-      setIsCategoryOpen(false);
-      setCategorySearch('');
+  const [prevTxKey, setPrevTxKey] = useState<string | null>(
+    isOpen ? (editingTransaction ? `${editingTransaction.id}_${editingTransaction.amount}` : `__new__${initialType}`) : null
+  );
+
+  const currentTxKey = isOpen
+    ? (editingTransaction ? `${editingTransaction.id}_${editingTransaction.amount}` : `__new__${initialType}`)
+    : null;
+
+  if (currentTxKey !== prevTxKey) {
+    setPrevTxKey(currentTxKey);
+    setIsCategoryOpen(false);
+    setCategorySearch('');
+    if (editingTransaction) {
+      setType(editingTransaction.type);
+      setAmount(String(editingTransaction.amount));
+      setAccountId(editingTransaction.account_id);
+      setToAccountId(editingTransaction.to_account_id || '');
+      setCategoryId(editingTransaction.category_id || '');
+      setDate(editingTransaction.date);
+      setTime(editingTransaction.time || '');
+      setPayee(editingTransaction.payee || '');
+      setNote(editingTransaction.note || '');
+      setPaymentType(editingTransaction.payment_type);
+    } else {
+      setType(initialType);
+      setAmount('');
+      if (accounts.length > 0) {
+        setAccountId(accounts[0].id);
+        if (accounts.length > 1) {
+          setToAccountId(accounts[1].id);
+        }
+      }
+      const defaultCategory = categories.find((c) => c.type === (initialType === 'income' ? 'income' : 'expense'));
+      if (defaultCategory) {
+        setCategoryId(defaultCategory.id);
+      }
+      const now = new Date();
+      setDate(now.toISOString().split('T')[0]);
+      setTime(now.toTimeString().slice(0, 5));
+      setPayee('');
+      setNote('');
+      setPaymentType('cash');
     }
-  }, [isOpen]);
+    setError(null);
+  }
+
+  if (!isCategoryOpen && prevIsCatOpen) {
+    setPrevIsCatOpen(false);
+    setCategorySearch('');
+  } else if (isCategoryOpen && !prevIsCatOpen) {
+    setPrevIsCatOpen(true);
+  }
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      const storageKey = `urpwallet_recent_cats_${type}`;
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        setRecentCatIds(JSON.parse(stored));
-      } else {
+    const timer = setTimeout(() => {
+      if (typeof window === 'undefined') return;
+      try {
+        const storageKey = `urpwallet_recent_cats_${type}`;
+        const stored = localStorage.getItem(storageKey);
+        if (stored) {
+          setRecentCatIds(JSON.parse(stored));
+        } else {
+          setRecentCatIds([]);
+        }
+      } catch {
         setRecentCatIds([]);
       }
-    } catch {
-      setRecentCatIds([]);
-    }
+    }, 0);
+    return () => clearTimeout(timer);
   }, [type]);
 
   useEffect(() => {
@@ -110,45 +160,8 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         searchInputRef.current?.focus();
       }, 50);
       return () => clearTimeout(timer);
-    } else {
-      setCategorySearch('');
     }
   }, [isCategoryOpen]);
-
-  useEffect(() => {
-    if (editingTransaction) {
-      setType(editingTransaction.type);
-      setAmount(String(editingTransaction.amount));
-      setAccountId(editingTransaction.account_id);
-      setToAccountId(editingTransaction.to_account_id || '');
-      setCategoryId(editingTransaction.category_id || '');
-      setDate(editingTransaction.date);
-      setTime(editingTransaction.time || '');
-      setPayee(editingTransaction.payee || '');
-      setNote(editingTransaction.note || '');
-      setPaymentType(editingTransaction.payment_type);
-    } else {
-      setType(initialType);
-      setAmount('');
-      if (accounts.length > 0) {
-        setAccountId(accounts[0].id);
-        if (accounts.length > 1) {
-          setToAccountId(accounts[1].id);
-        }
-      }
-      const defaultCategory = categories.find((c) => c.type === (initialType === 'income' ? 'income' : 'expense'));
-      if (defaultCategory) {
-        setCategoryId(defaultCategory.id);
-      }
-      const now = new Date();
-      setDate(now.toISOString().split('T')[0]);
-      setTime(now.toTimeString().slice(0, 5));
-      setPayee('');
-      setNote('');
-      setPaymentType('cash');
-    }
-    setError(null);
-  }, [editingTransaction, initialType, isOpen, accounts, categories]);
 
   const filteredCategories = useMemo(() => {
     return categories.filter((c) => c.type === (type === 'income' ? 'income' : 'expense'));

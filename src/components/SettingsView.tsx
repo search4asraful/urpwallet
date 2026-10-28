@@ -3,9 +3,8 @@
 import React, { useState } from 'react';
 import {
   Download, Upload, RefreshCw, Eye, EyeOff, Plus, Trash2, Check,
-  Smartphone, Database, Shield, Palette, Sun, Moon, Monitor,
-  Sparkles, CircleDot, Cloud, CloudUpload, KeyRound, ShieldCheck,
-  ShieldAlert, Lock
+  Smartphone, Database, Palette, Sun, Moon, Monitor,
+  Sparkles, CircleDot, Cloud, CloudUpload, KeyRound, Lock
 } from 'lucide-react';
 import { Category, ThemeMode, Transaction } from '@/types';
 import { CategoryIcon } from './CategoryIcon';
@@ -66,7 +65,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [seedLoading, setSeedLoading] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
 
-  const { themeMode, resolvedTheme, systemTheme, setTheme } = useTheme();
+  const { themeMode, systemTheme, setTheme } = useTheme();
   const { user, isAdmin } = useAuth();
 
   const txCountMap = React.useMemo(() => {

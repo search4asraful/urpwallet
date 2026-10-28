@@ -97,7 +97,10 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      fetchStatusAndBackups();
+      const timer = setTimeout(() => {
+        fetchStatusAndBackups();
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [isOpen, fetchStatusAndBackups]);
 

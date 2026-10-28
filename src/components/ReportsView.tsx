@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useSyncExternalStore } from 'react';
 import {
   PieChart as RechartsPieChart,
   Pie,
@@ -31,6 +31,8 @@ interface ReportsViewProps {
   baseCurrency: string;
 }
 
+const emptySubscribe = () => () => {};
+
 export const ReportsView: React.FC<ReportsViewProps> = ({
   data,
   privacyMode,
@@ -38,11 +40,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 }) => {
   const { categoryBreakdown, cashFlowTrend, monthlyIncome, monthlyExpense } = data;
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   const pieData = (categoryBreakdown || [])
     .filter((cat) => cat.total > 0)

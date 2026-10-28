@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useSyncExternalStore } from 'react';
 import { ThemeMode } from '@/types';
 
 export type ResolvedTheme = 'dark' | 'light' | 'midnight' | 'emerald';
@@ -11,6 +11,8 @@ interface ThemeContextType {
   systemTheme: 'dark' | 'light';
   setTheme: (theme: ThemeMode) => void;
 }
+
+const emptySubscribe = () => () => {};
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
@@ -54,7 +56,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (typeof window === 'undefined') return 'system';
     return ((localStorage.getItem('urpwallet_theme') || localStorage.getItem('wallet_theme')) as ThemeMode) || 'system';
   });
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   // Initialize theme on mount
   useEffect(() => {
@@ -62,7 +64,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const savedMode = ((localStorage.getItem('urpwallet_theme') || localStorage.getItem('wallet_theme')) as ThemeMode) || 'system';
     const resolved = resolveTheme(savedMode, sys);
     applyThemeToDOM(resolved);
-    setMounted(true);
   }, []);
 
   // System theme change listener (auto-detection)
