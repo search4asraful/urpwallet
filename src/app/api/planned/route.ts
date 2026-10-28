@@ -13,7 +13,7 @@ export async function GET() {
         c.name as category_name,
         c.color as category_color,
         c.icon as category_icon
-      FROM planned_payments p
+      FROM bills_subscriptions p
       LEFT JOIN accounts a ON p.account_id = a.id
       LEFT JOIN categories c ON p.category_id = c.id
       ORDER BY p.next_date ASC
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     const now = new Date().toISOString();
 
     const stmt = db.prepare(`
-      INSERT INTO planned_payments (
+      INSERT INTO bills_subscriptions (
         id, name, amount, type, account_id, category_id, payee,
         frequency, next_date, auto_record, is_active, created_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
         c.name as category_name,
         c.color as category_color,
         c.icon as category_icon
-      FROM planned_payments p
+      FROM bills_subscriptions p
       LEFT JOIN accounts a ON p.account_id = a.id
       LEFT JOIN categories c ON p.category_id = c.id
       WHERE p.id = ?

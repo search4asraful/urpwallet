@@ -27,50 +27,69 @@ export async function POST(
     db.prepare('UPDATE debts SET settled_amount = ?, status = ? WHERE id = ?')
       .run(newSettled, newStatus, id);
 
-    // Optional: If accountId is provided, also record the cashflow transaction
-    if (body.account_id) {
-      const now = new Date().toISOString();
-      const today = now.split('T')[0];
-      const currentTime = now.substring(11, 16);
-      const isIncome = debt.type === 'loan_owed_to_me'; // Money returned to me is income/cash inflow
-      const txType = isIncome ? 'income' : 'expense';
-      const txId = 'tx_' + Math.random().toString(36).substring(2, 9);
+    // Always record the transaction when a debt/loan is settled (Income for loan, Expense for debt)
+    const now = new Date().toISOString();
+    const today = now.split('T')[0];
+    const currentTime = now.substring(11, 16);
+    const isIncome = debt.type === 'loan_owed_to_me'; // Loan collected = income; debt paid = expense
+    const txType = isIncome ? 'income' : 'expense';
+    const txId = 'tx_' + Math.random().toString(36).substring(2, 9);
 
-      db.transaction(() => {
-        db.prepare(`
-          INSERT INTO transactions (
-            id, account_id, to_account_id, category_id, type, amount, currency,
-            date, time, payee, note, status, payment_type, created_at
-          ) VALUES (
-            @id, @account_id, @to_account_id, @category_id, @type, @amount, @currency,
-            @date, @time, @payee, @note, @status, @payment_type, @created_at
-          )
-        `).run({
-          id: txId,
-          account_id: body.account_id,
-          to_account_id: null,
-          category_id: null,
-          type: txType,
-          amount: payAmount,
-          currency: 'USD',
-          date: today,
-          time: currentTime,
-          payee: debt.person_name,
-          note: `Debt repayment (${debt.type === 'loan_owed_to_me' ? 'Collected from' : 'Paid to'} ${debt.person_name})`,
-          status: 'cleared',
-          payment_type: 'cash',
-          created_at: now,
-        });
-
-        if (isIncome) {
-          db.prepare('UPDATE accounts SET balance = balance + ?, updated_at = ? WHERE id = ?')
-            .run(payAmount, now, body.account_id);
-        } else {
-          db.prepare('UPDATE accounts SET balance = balance - ?, updated_at = ? WHERE id = ?')
-            .run(payAmount, now, body.account_id);
-        }
-      })();
+    // Resolve account automatically if not provided
+    let targetAccId = body.account_id;
+    if (!targetAccId) {
+      const defaultAcc = db.prepare('SELECT id, currency FROM accounts WHERE is_archived = 0 ORDER BY balance DESC LIMIT 1').get() as { id: string; currency: string } | undefined;
+      targetAccId = defaultAcc?.id;
     }
+    if (!targetAccId) {
+      const anyAcc = db.prepare('SELECT id, currency FROM accounts LIMIT 1').get() as { id: string; currency: string } | undefined;
+      targetAccId = anyAcc?.id;
+    }
+    if (!targetAccId) {
+      targetAccId = 'acc_cash';
+      db.prepare(`
+        INSERT INTO accounts (id, name, type, currency, balance, color, icon, created_at, updated_at)
+        VALUES ('acc_cash', 'Cash Wallet', 'cash', 'USD', 0, '#10B981', 'Wallet', ?, ?)
+      `).run(now, now);
+    }
+
+    const accRow = db.prepare('SELECT currency FROM accounts WHERE id = ?').get(targetAccId) as { currency: string } | undefined;
+    const currency = accRow?.currency || 'USD';
+
+    db.transaction(() => {
+      db.prepare(`
+        INSERT INTO transactions (
+          id, account_id, to_account_id, category_id, type, amount, currency,
+          date, time, payee, note, status, payment_type, created_at
+        ) VALUES (
+          @id, @account_id, @to_account_id, @category_id, @type, @amount, @currency,
+          @date, @time, @payee, @note, @status, @payment_type, @created_at
+        )
+      `).run({
+        id: txId,
+        account_id: targetAccId,
+        to_account_id: null,
+        category_id: null,
+        type: txType,
+        amount: payAmount,
+        currency,
+        date: today,
+        time: currentTime,
+        payee: debt.person_name,
+        note: `Debt settlement: ${isIncome ? 'Collected from' : 'Paid to'} ${debt.person_name}`,
+        status: 'cleared',
+        payment_type: 'cash',
+        created_at: now,
+      });
+
+      if (isIncome) {
+        db.prepare('UPDATE accounts SET balance = balance + ?, updated_at = ? WHERE id = ?')
+          .run(payAmount, now, targetAccId);
+      } else {
+        db.prepare('UPDATE accounts SET balance = balance - ?, updated_at = ? WHERE id = ?')
+          .run(payAmount, now, targetAccId);
+      }
+    })();
 
     const updated = db.prepare('SELECT * FROM debts WHERE id = ?').get(id);
     return NextResponse.json(updated);

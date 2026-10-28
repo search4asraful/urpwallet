@@ -12,7 +12,7 @@ export async function PUT(
     const body = await req.json();
 
     const stmt = db.prepare(`
-      UPDATE planned_payments 
+      UPDATE bills_subscriptions 
       SET name = COALESCE(?, name),
           amount = COALESCE(?, amount),
           type = COALESCE(?, type),
@@ -47,7 +47,7 @@ export async function PUT(
         c.name as category_name,
         c.color as category_color,
         c.icon as category_icon
-      FROM planned_payments p
+      FROM bills_subscriptions p
       LEFT JOIN accounts a ON p.account_id = a.id
       LEFT JOIN categories c ON p.category_id = c.id
       WHERE p.id = ?
@@ -66,7 +66,7 @@ export async function DELETE(
   try {
     const { id } = await props.params;
     const db = getDb();
-    db.prepare('DELETE FROM planned_payments WHERE id = ?').run(id);
+    db.prepare('DELETE FROM bills_subscriptions WHERE id = ?').run(id);
     return NextResponse.json({ success: true, id });
   } catch (error: unknown) {
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });

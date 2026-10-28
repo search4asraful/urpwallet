@@ -83,7 +83,7 @@ function initTables(db: Database.Database) {
       FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
     );
 
-    CREATE TABLE IF NOT EXISTS planned_payments (
+    CREATE TABLE IF NOT EXISTS bills_subscriptions (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       amount REAL NOT NULL,
@@ -144,6 +144,23 @@ function initTables(db: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
   `);
 
+  // Migrate legacy planned_payments table if it exists
+  try {
+    const hasLegacy = db.prepare("SELECT count(*) as cnt FROM sqlite_master WHERE type='table' AND name='planned_payments'").get() as { cnt: number };
+    if (hasLegacy && hasLegacy.cnt > 0) {
+      db.exec(`
+        INSERT OR IGNORE INTO bills_subscriptions (
+          id, name, amount, type, account_id, category_id, payee, frequency, next_date, auto_record, is_active, created_at
+        )
+        SELECT id, name, amount, type, account_id, category_id, payee, frequency, next_date, auto_record, is_active, created_at
+        FROM planned_payments;
+        DROP TABLE planned_payments;
+      `);
+    }
+  } catch (e) {
+    console.warn('Migration from planned_payments warning:', e);
+  }
+
   // Check if categories are empty, if so, seed
   const count = db.prepare('SELECT count(*) as cnt FROM categories').get() as { cnt: number };
   if (count.cnt === 0) {
@@ -174,7 +191,7 @@ export function seedDatabase(db: Database.Database = getDb()) {
   db.exec(`
     DELETE FROM transactions;
     DELETE FROM budgets;
-    DELETE FROM planned_payments;
+    DELETE FROM bills_subscriptions;
     DELETE FROM debts;
     DELETE FROM accounts;
     DELETE FROM categories;
@@ -251,7 +268,7 @@ export function seedDatabase(db: Database.Database = getDb()) {
     insertBudget.run(b);
   }
 
-  // Planned Payments
+  // Planned Payments / Bills & Subscriptions
   const planned = [
     { id: 'plan_rent', name: 'Apartment Rent', amount: 1250, type: 'expense', account_id: 'acc_checking', category_id: 'cat_housing', payee: 'Avalon Properties', frequency: 'monthly', next_date: `${year}-${month}-01`, auto_record: 1 },
     { id: 'plan_net_spo', name: 'Streaming (Netflix & Spotify)', amount: 27.98, type: 'expense', account_id: 'acc_credit', category_id: 'cat_entertainment', payee: 'Media Subscriptions', frequency: 'monthly', next_date: `${year}-${month}-15`, auto_record: 1 },
@@ -260,7 +277,7 @@ export function seedDatabase(db: Database.Database = getDb()) {
   ];
 
   const insertPlanned = db.prepare(`
-    INSERT INTO planned_payments (id, name, amount, type, account_id, category_id, payee, frequency, next_date, auto_record, is_active, created_at)
+    INSERT INTO bills_subscriptions (id, name, amount, type, account_id, category_id, payee, frequency, next_date, auto_record, is_active, created_at)
     VALUES (@id, @name, @amount, @type, @account_id, @category_id, @payee, @frequency, @next_date, @auto_record, 1, '${now}')
   `);
   for (const p of planned) {

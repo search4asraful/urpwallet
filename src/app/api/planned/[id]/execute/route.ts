@@ -9,7 +9,7 @@ export async function POST(
   const db = getDb();
   try {
     const { id } = await props.params;
-    const plan = db.prepare('SELECT * FROM planned_payments WHERE id = ?').get(id) as PlannedPayment | undefined;
+    const plan = db.prepare('SELECT * FROM bills_subscriptions WHERE id = ?').get(id) as PlannedPayment | undefined;
     if (!plan) {
       return NextResponse.json({ error: 'Planned payment not found' }, { status: 404 });
     }
@@ -72,7 +72,7 @@ export async function POST(
       }
 
       // 3. Update next date for the planned payment
-      db.prepare('UPDATE planned_payments SET next_date = ? WHERE id = ?')
+      db.prepare('UPDATE bills_subscriptions SET next_date = ? WHERE id = ?')
         .run(nextDateStr, id);
     });
 

@@ -124,8 +124,9 @@ export async function POST(req: Request) {
       categories: 0,
       transactions: 0,
       budgets: 0,
+      bills_subscriptions: 0,
       debts: 0,
-      planned_payments: 0,
+      settings: 0,
     };
 
     const now = new Date().toISOString();
@@ -136,7 +137,7 @@ export async function POST(req: Request) {
         db.exec(`
           DELETE FROM transactions;
           DELETE FROM budgets;
-          DELETE FROM planned_payments;
+          DELETE FROM bills_subscriptions;
           DELETE FROM debts;
           DELETE FROM accounts;
           DELETE FROM categories;
@@ -173,10 +174,11 @@ export async function POST(req: Request) {
 
           for (const c of parsed.categories as Record<string, unknown>[]) {
             if (c.id && c.name) {
+              const catType = String(c.type || c.category_type || 'expense');
               insertCat.run(
                 String(c.id),
                 String(c.name),
-                String(c.type || 'expense'),
+                catType,
                 String(c.icon || 'CircleDollarSign'),
                 String(c.color || '#64748B'),
                 c.parent_id ? String(c.parent_id) : null,
@@ -205,15 +207,17 @@ export async function POST(req: Request) {
 
           for (const a of parsed.accounts as Record<string, unknown>[]) {
             if (a.id && a.name) {
+              const accType = String(a.type || a.account_type || 'bank');
+              const isArchived = a.is_archived === true || a.is_archived === 1 || a.is_archived === '1' ? 1 : 0;
               insertAcc.run(
                 String(a.id),
                 String(a.name),
-                String(a.type || 'bank'),
+                accType,
                 String(a.currency || 'USD'),
                 Number(a.balance) || 0,
                 String(a.color || '#3B82F6'),
                 String(a.icon || 'Wallet'),
-                a.is_archived ? 1 : 0,
+                isArchived,
                 String(a.created_at || now),
                 String(a.updated_at || now)
               );
@@ -269,9 +273,10 @@ export async function POST(req: Request) {
 
           for (const d of parsed.debts as Record<string, unknown>[]) {
             if (d.id && d.person_name && d.amount) {
+              const debtType = String(d.type || d.debt_type || 'debt_i_owe');
               insertDebt.run(
                 String(d.id),
-                String(d.type || 'debt_i_owe'),
+                debtType,
                 String(d.person_name),
                 Number(d.amount),
                 Number(d.settled_amount) || 0,
@@ -285,10 +290,14 @@ export async function POST(req: Request) {
           }
         }
 
-        // 5. Planned Payments
-        if (Array.isArray(parsed.planned_payments)) {
-          const insertPlan = db.prepare(`
-            INSERT INTO planned_payments (id, name, amount, type, account_id, category_id, payee, frequency, next_date, auto_record, is_active, created_at)
+        // 5. Bills & Subscriptions / Planned Payments
+        const rawBills = Array.isArray(parsed.bills_subscriptions)
+          ? parsed.bills_subscriptions
+          : (Array.isArray(parsed.planned_payments) ? parsed.planned_payments : null);
+
+        if (Array.isArray(rawBills)) {
+          const insertBill = db.prepare(`
+            INSERT INTO bills_subscriptions (id, name, amount, type, account_id, category_id, payee, frequency, next_date, auto_record, is_active, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
               name = excluded.name,
@@ -303,23 +312,27 @@ export async function POST(req: Request) {
               is_active = excluded.is_active
           `);
 
-          for (const p of parsed.planned_payments as Record<string, unknown>[]) {
+          for (const p of rawBills as Record<string, unknown>[]) {
             if (p.id && p.name && p.amount && p.account_id) {
-              insertPlan.run(
+              const billType = String(p.type || p.bill_type || 'expense');
+              const autoRecord = p.auto_record === true || p.auto_record === 1 || p.auto_record === '1' ? 1 : 0;
+              const isActive = p.is_active !== undefined ? (p.is_active === true || p.is_active === 1 || p.is_active === '1' ? 1 : 0) : 1;
+
+              insertBill.run(
                 String(p.id),
                 String(p.name),
                 Number(p.amount),
-                String(p.type || 'expense'),
+                billType,
                 String(p.account_id),
                 p.category_id ? String(p.category_id) : null,
                 p.payee ? String(p.payee) : null,
                 String(p.frequency || 'monthly'),
                 String(p.next_date || now.split('T')[0]),
-                p.auto_record ? 1 : 0,
-                p.is_active !== undefined ? (p.is_active ? 1 : 0) : 1,
+                autoRecord,
+                isActive,
                 String(p.created_at || now)
               );
-              counts.planned_payments++;
+              counts.bills_subscriptions++;
             }
           }
         }
@@ -388,13 +401,14 @@ export async function POST(req: Request) {
 
             const targetAcc = existingAccounts.find((a) => a.id === accId);
             const currency = String(tx.currency || targetAcc?.currency || 'USD');
+            const txType = String(tx.type || tx.tx_type || 'expense');
 
             insertTx.run(
               txId,
               accId,
               toAccId,
               catId,
-              String(tx.type || 'expense'),
+              txType,
               amount,
               currency,
               String(tx.date || now.split('T')[0]),
@@ -406,6 +420,32 @@ export async function POST(req: Request) {
               String(tx.created_at || now)
             );
             counts.transactions++;
+          }
+        }
+
+        // 7. Settings
+        if (parsed.settings) {
+          const insertSetting = db.prepare(`
+            INSERT INTO settings (key, value) VALUES (?, ?)
+            ON CONFLICT(key) DO UPDATE SET value = excluded.value
+          `);
+
+          if (Array.isArray(parsed.settings)) {
+            for (const s of parsed.settings) {
+              if (Array.isArray(s) && s.length >= 2) {
+                insertSetting.run(String(s[0]), String(s[1]));
+                counts.settings++;
+              } else if (typeof s === 'object' && s !== null && 'key' in s && 'value' in s) {
+                const item = s as { key: string; value: string };
+                insertSetting.run(String(item.key), String(item.value));
+                counts.settings++;
+              }
+            }
+          } else if (typeof parsed.settings === 'object' && parsed.settings !== null) {
+            for (const [k, v] of Object.entries(parsed.settings as Record<string, unknown>)) {
+              insertSetting.run(k, String(v));
+              counts.settings++;
+            }
           }
         }
       } else {

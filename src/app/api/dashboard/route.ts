@@ -94,7 +94,7 @@ export async function GET() {
       };
     });
 
-    // 6. Upcoming Planned Payments
+    // 6. Upcoming Planned Payments / Bills
     const upcomingPlanned = db.prepare(`
       SELECT 
         p.*,
@@ -102,7 +102,7 @@ export async function GET() {
         c.name as category_name,
         c.color as category_color,
         c.icon as category_icon
-      FROM planned_payments p
+      FROM bills_subscriptions p
       LEFT JOIN accounts a ON p.account_id = a.id
       LEFT JOIN categories c ON p.category_id = c.id
       WHERE p.is_active = 1

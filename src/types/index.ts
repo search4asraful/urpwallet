@@ -97,6 +97,86 @@ export interface PlannedPayment {
   category_icon?: string;
 }
 
+export type BillSubscription = PlannedPayment;
+export type BillFrequency = PlannedFrequency;
+
+export interface FullBackupData {
+  exported_at: string;
+  accounts: {
+    id: string;
+    name: string;
+    account_type: AccountType;
+    currency: string;
+    balance: number;
+    color: string;
+    icon: string;
+    is_archived: boolean;
+    created_at: string;
+    updated_at: string;
+  }[];
+  categories: {
+    id: string;
+    name: string;
+    category_type: 'expense' | 'income';
+    icon: string;
+    color: string;
+    parent_id: string | null;
+    created_at: string;
+  }[];
+  transactions: {
+    id: string;
+    account_id: string;
+    to_account_id: string | null;
+    category_id: string | null;
+    tx_type: TransactionType;
+    amount: number;
+    currency: string;
+    date: string;
+    time: string | null;
+    payee: string | null;
+    note: string | null;
+    status: TransactionStatus;
+    payment_type: PaymentType;
+    created_at: string;
+  }[];
+  budgets: {
+    id: string;
+    name: string;
+    amount: number;
+    period: BudgetPeriod;
+    category_id: string | null;
+    start_date: string;
+    end_date: string;
+    created_at: string;
+  }[];
+  bills_subscriptions: {
+    id: string;
+    name: string;
+    amount: number;
+    bill_type: TransactionType;
+    account_id: string;
+    category_id: string | null;
+    payee: string | null;
+    frequency: PlannedFrequency;
+    next_date: string;
+    auto_record: boolean;
+    is_active: boolean;
+    created_at: string;
+  }[];
+  debts: {
+    id: string;
+    debt_type: DebtType;
+    person_name: string;
+    amount: number;
+    settled_amount: number;
+    due_date: string | null;
+    notes: string | null;
+    status: DebtStatus;
+    created_at: string;
+  }[];
+  settings: [string, string][];
+}
+
 export interface Debt {
   id: string;
   type: DebtType;

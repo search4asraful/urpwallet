@@ -31,7 +31,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
       categories: number;
       budgets: number;
       debts: number;
-      planned_payments: number;
+      bills_subscriptions: number;
     };
   } | null>(null);
 

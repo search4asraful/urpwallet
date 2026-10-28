@@ -4,14 +4,14 @@ import React, { useState, useEffect } from 'react';
 import { Check, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import { Debt, Account } from '@/types';
 import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
-import { Modal, Button, Select, ProgressBar, Badge } from '@/components/ui';
+import { Modal, Button, ProgressBar, Badge } from '@/components/ui';
 
 interface RecordDebtPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
   debt: Debt | null;
-  accounts: Account[];
+  accounts?: Account[];
   baseCurrency?: string;
 }
 
@@ -27,11 +27,9 @@ export const RecordDebtPaymentModal: React.FC<RecordDebtPaymentModalProps> = ({
   onClose,
   onSuccess,
   debt,
-  accounts,
   baseCurrency = 'USD',
 }) => {
   const [amount, setAmount] = useState('');
-  const [accountId, setAccountId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,7 +39,6 @@ export const RecordDebtPaymentModal: React.FC<RecordDebtPaymentModalProps> = ({
     if (isOpen && debt) {
       const rem = Math.max(0, debt.amount - debt.settled_amount);
       setAmount(rem > 0 ? rem.toFixed(2) : '');
-      setAccountId('');
       setError(null);
     }
   }, [isOpen, debt]);
@@ -79,7 +76,6 @@ export const RecordDebtPaymentModal: React.FC<RecordDebtPaymentModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           amount: numAmount,
-          account_id: accountId || null,
         }),
       });
 
@@ -246,31 +242,12 @@ export const RecordDebtPaymentModal: React.FC<RecordDebtPaymentModalProps> = ({
           </div>
         </div>
 
-        {/* Sync Account Selector */}
-        <div>
-          <Select
-            label={
-              isLent
-                ? 'Deposit Account (Cash Inflow - optional)'
-                : 'Payment Account (Cash Outflow - optional)'
-            }
-            value={accountId}
-            onChange={(e) => setAccountId(e.target.value)}
-          >
-            <option value="" className="bg-theme-card text-theme-title">
-              External / Direct settlement
-            </option>
-            {accounts.map((acc) => (
-              <option key={acc.id} value={acc.id} className="bg-theme-card text-theme-title">
-                {acc.name} ({formatCurrency(acc.balance, acc.currency)})
-              </option>
-            ))}
-          </Select>
-          <p className="text-[10px] text-theme-faint mt-1 px-1">
-            {isLent
-              ? 'Selecting an account will automatically add an Income transaction.'
-              : 'Selecting an account will automatically deduct an Expense transaction.'}
-          </p>
+        {/* Transaction Record Notice */}
+        <div className="p-2.5 rounded-xl bg-theme-subtle border border-theme text-[11px] text-theme-muted flex items-center justify-between">
+          <span>Recorded to transactions as:</span>
+          <span className={`font-bold ${isLent ? 'text-emerald-500' : 'text-rose-500'}`}>
+            {isLent ? '+ Income' : '- Expense'}
+          </span>
         </div>
 
         {/* Submit Button */}
